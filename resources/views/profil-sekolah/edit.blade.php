@@ -94,33 +94,11 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Kolom Kiri: Kepala Sekolah -->
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                    <div class="flex items-center space-x-2 text-blue-700 font-bold text-xs uppercase">
-                        <i class="fa-solid fa-user-tie"></i>
-                        <span>Kepala Sekolah (Sisi Kiri)</span>
-                    </div>
-
-                    <div>
-                        <label for="nama_kepsek" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Lengkap & Gelar <span class="text-rose-500">*</span></label>
-                        <input type="text" name="nama_kepsek" id="nama_kepsek" value="{{ old('nama_kepsek', $profil->nama_kepsek) }}" required
-                               placeholder="Contoh: Drs. H. Ahmad Sudrajat, M.Pd."
-                               class="w-full px-3 py-2 text-sm bg-white border @error('nama_kepsek') border-rose-500 @else border-slate-200 @enderror rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-
-                    <div>
-                        <label for="nip_kepsek" class="block text-xs font-bold text-slate-700 uppercase mb-1">NIP Kepala Sekolah <span class="text-rose-500">*</span></label>
-                        <input type="text" name="nip_kepsek" id="nip_kepsek" value="{{ old('nip_kepsek', $profil->nip_kepsek) }}" required
-                               placeholder="19750812 200003 1 002"
-                               class="w-full px-3 py-2 text-sm bg-white border @error('nip_kepsek') border-rose-500 @else border-slate-200 @enderror rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
-                    </div>
-                </div>
-
-                <!-- Kolom Kanan: Waka Sarana & Prasarana -->
+                <!-- Kolom Kiri: Waka Sarana & Prasarana (Diketahui) -->
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                     <div class="flex items-center space-x-2 text-blue-700 font-bold text-xs uppercase">
                         <i class="fa-solid fa-user-gear"></i>
-                        <span>Waka Sarana Prasarana (Sisi Kanan)</span>
+                        <span>Waka Sarana Prasarana (Sisi Kiri - Diketahui)</span>
                     </div>
 
                     <div>
@@ -135,6 +113,28 @@
                         <input type="text" name="nip_waka_sarpras" id="nip_waka_sarpras" value="{{ old('nip_waka_sarpras', $profil->nip_waka_sarpras) }}" required
                                placeholder="19820315 200801 1 015"
                                class="w-full px-3 py-2 text-sm bg-white border @error('nip_waka_sarpras') border-rose-500 @else border-slate-200 @enderror rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Kepala Sekolah (Disahkan Oleh) -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex items-center space-x-2 text-blue-700 font-bold text-xs uppercase">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <span>Kepala Sekolah (Sisi Kanan - Disahkan Oleh)</span>
+                    </div>
+
+                    <div>
+                        <label for="nama_kepsek" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Lengkap & Gelar <span class="text-rose-500">*</span></label>
+                        <input type="text" name="nama_kepsek" id="nama_kepsek" value="{{ old('nama_kepsek', $profil->nama_kepsek) }}" required
+                               placeholder="Contoh: Drs. H. Ahmad Sudrajat, M.Pd."
+                               class="w-full px-3 py-2 text-sm bg-white border @error('nama_kepsek') border-rose-500 @else border-slate-200 @enderror rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="nip_kepsek" class="block text-xs font-bold text-slate-700 uppercase mb-1">NIP Kepala Sekolah <span class="text-rose-500">*</span></label>
+                        <input type="text" name="nip_kepsek" id="nip_kepsek" value="{{ old('nip_kepsek', $profil->nip_kepsek) }}" required
+                               placeholder="19750812 200003 1 002"
+                               class="w-full px-3 py-2 text-sm bg-white border @error('nip_kepsek') border-rose-500 @else border-slate-200 @enderror rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
                     </div>
                 </div>
             </div>

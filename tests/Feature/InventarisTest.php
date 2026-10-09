@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\InventarisBarang;
 use App\Models\ProfilSekolah;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -11,22 +12,56 @@ class InventarisTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected User $admin;
+    protected User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed();
+
+        $this->admin = User::where('role', 'admin')->first();
+        $this->user = User::where('role', 'user')->first();
     }
 
     public function test_can_access_inventaris_index_with_filters(): void
     {
-        $response = $this->get('/inventaris');
+        $firstItem = InventarisBarang::latest('id')->first();
+        $response = $this->actingAs($this->admin)->get('/inventaris');
         $response->assertStatus(200);
         $response->assertSee('Buku Inventaris Barang');
-        $response->assertSee('INV-BOS-2024-001');
+        $response->assertSee($firstItem->kode_barang);
 
-        // Test filter
-        $responseFilter = $this->get('/inventaris?tahun_anggaran=2024&kondisi=Baik');
+        // Test filter tahun anggaran & bulan
+        $responseFilter = $this->actingAs($this->admin)->get('/inventaris?tahun_anggaran=' . $firstItem->tahun_anggaran . '&bulan=3&kondisi=' . $firstItem->kondisi);
         $responseFilter->assertStatus(200);
+    }
+
+    public function test_regular_user_can_access_inventaris_and_import_features(): void
+    {
+        // 1. User biasa bisa melihat daftar inventaris
+        $responseIndex = $this->actingAs($this->user)->get('/inventaris');
+        $responseIndex->assertStatus(200);
+        $responseIndex->assertSee('Import Excel');
+        $responseIndex->assertSee('Unduh Format Template');
+
+        // 2. User biasa bisa mengunduh template Excel
+        $responseTemplate = $this->actingAs($this->user)->get('/inventaris/template/excel');
+        $responseTemplate->assertStatus(200);
+        $this->assertTrue(str_contains($responseTemplate->headers->get('content-disposition'), 'Template_Buku_Inventaris_Barang_Dana_BOS.xlsx'));
+
+        // 3. User biasa bisa submit impor file Excel (validasi input berjalan, bukan 403 forbidden)
+        $responseImport = $this->actingAs($this->user)->post('/inventaris/import/excel', []);
+        $responseImport->assertSessionHasErrors(['file_excel']);
+
+        // 4. User biasa TIDAK BISA mengakses create barang manual atau profil sekolah (khusus admin)
+        $responseCreate = $this->actingAs($this->user)->get('/inventaris/create');
+        $responseCreate->assertRedirect('/inventaris');
+        $responseCreate->assertSessionHas('error');
+
+        $responseProfil = $this->actingAs($this->user)->get('/profil-sekolah');
+        $responseProfil->assertRedirect('/inventaris');
+        $responseProfil->assertSessionHas('error');
     }
 
     public function test_can_create_inventaris_with_automatic_calculation(): void
@@ -52,7 +87,7 @@ class InventarisTest extends TestCase
             'tautan_dokumen'     => 'https://example.com/bast.pdf',
         ];
 
-        $response = $this->post('/inventaris', $data);
+        $response = $this->actingAs($this->admin)->post('/inventaris', $data);
         $response->assertRedirect('/inventaris');
 
         $this->assertDatabaseHas('inventaris_barangs', [
@@ -88,7 +123,7 @@ class InventarisTest extends TestCase
             'tautan_dokumen'     => null,
         ];
 
-        $response = $this->put("/inventaris/{$item->id}", $updateData);
+        $response = $this->actingAs($this->admin)->put("/inventaris/{$item->id}", $updateData);
         $response->assertRedirect('/inventaris');
 
         $this->assertDatabaseHas('inventaris_barangs', [
@@ -102,7 +137,7 @@ class InventarisTest extends TestCase
 
     public function test_can_update_profil_sekolah_single_row(): void
     {
-        $response = $this->get('/profil-sekolah');
+        $response = $this->actingAs($this->admin)->get('/profil-sekolah');
         $response->assertStatus(200);
 
         $data = [
@@ -116,7 +151,7 @@ class InventarisTest extends TestCase
             'nip_waka_sarpras'  => '19850202 201001 1 002',
         ];
 
-        $response = $this->put('/profil-sekolah', $data);
+        $response = $this->actingAs($this->admin)->put('/profil-sekolah', $data);
         $response->assertRedirect('/profil-sekolah');
 
         $this->assertDatabaseHas('profil_sekolahs', [
@@ -128,15 +163,44 @@ class InventarisTest extends TestCase
 
     public function test_can_export_excel(): void
     {
-        $response = $this->get('/inventaris/export/excel');
+        $response = $this->actingAs($this->admin)->get('/inventaris/export/excel?tahun_anggaran=2026&bulan=3');
         $response->assertStatus(200);
         $this->assertTrue(str_contains($response->headers->get('content-disposition'), '.xlsx'));
     }
 
-    public function test_can_export_pdf(): void
+    public function test_can_export_pdf_with_month_filter_and_valid_lembar_pengesahan(): void
     {
-        $response = $this->get('/inventaris/export/pdf');
+        $response = $this->actingAs($this->user)->get('/inventaris/export/pdf?tahun_anggaran=2026&bulan=3');
         $response->assertStatus(200);
         $this->assertEquals('application/pdf', $response->headers->get('content-type'));
+
+        // Render view langsung untuk memverifikasi teks Lembar Pengesahan
+        $profil = ProfilSekolah::getProfil();
+        $inventaris = InventarisBarang::whereMonth('tanggal_perolehan', 3)->get();
+        $totalNilai = $inventaris->sum('nilai_perolehan');
+        $totalJumlah = $inventaris->sum('jumlah');
+        $namaBulanSelected = 'Maret';
+
+        $renderedHtml = view('inventaris.pdf', [
+            'inventaris'        => $inventaris,
+            'profil'            => $profil,
+            'totalNilai'        => $totalNilai,
+            'totalJumlah'       => $totalJumlah,
+            'request'           => request()->merge(['tahun_anggaran' => '2026', 'bulan' => '3']),
+            'namaBulanSelected' => $namaBulanSelected,
+        ])->render();
+
+        $this->assertStringContainsString('Diketahui :', $renderedHtml);
+        $this->assertStringContainsString('Wakil Kepala Sekolah Bid. Sarana &amp; Prasarana', $renderedHtml);
+        $this->assertStringContainsString('Disahkan Oleh :', $renderedHtml);
+        $this->assertStringContainsString('Kepala ' . $profil->nama_sekolah, $renderedHtml);
+        $this->assertStringContainsString('Maret', $renderedHtml);
+    }
+
+    public function test_can_download_template(): void
+    {
+        $response = $this->actingAs($this->user)->get('/inventaris/template/excel');
+        $response->assertStatus(200);
+        $this->assertTrue(str_contains($response->headers->get('content-disposition'), 'Template_Buku_Inventaris_Barang_Dana_BOS.xlsx'));
     }
 }

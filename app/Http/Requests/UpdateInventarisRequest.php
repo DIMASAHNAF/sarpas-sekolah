@@ -20,29 +20,24 @@ class UpdateInventarisRequest extends FormRequest
             ?? $this->route('inventaris');
 
         return [
-            'kode_barang'        => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('inventaris_barangs', 'kode_barang')->ignore($inventarisId),
-            ],
-            'tanggal_perolehan'  => ['required', 'date'],
-            'tanggal_pencatatan' => ['required', 'date'],
+            'kode_barang'        => ['required', 'string', 'max:100'],
+            'tanggal_perolehan'  => ['nullable', 'date'],
+            'tanggal_pencatatan' => ['nullable', 'date'],
             'nama_barang'        => ['required', 'string', 'max:255'],
-            'merk_spesifikasi'   => ['required', 'string'],
-            'kategori'           => ['required', 'string', 'max:100'],
+            'merk_spesifikasi'   => ['nullable', 'string'],
+            'kategori'           => ['nullable', 'string', 'max:100'],
             'jumlah'             => ['required', 'integer', 'min:1'],
-            'satuan'             => ['required', 'string', 'max:50'],
+            'satuan'             => ['nullable', 'string', 'max:50'],
             'harga_satuan'       => ['required', 'numeric', 'min:0'],
-            'no_bast'            => ['required', 'string', 'max:100'],
-            'sumber_dana'        => ['required', 'string', 'max:100'],
-            'tahun_anggaran'     => ['required', 'digits:4', 'integer'],
-            'lokasi_ruang'       => ['required', 'string', 'max:100'],
-            'kondisi'            => ['required', 'in:Baik,Rusak Ringan,Rusak Berat'],
-            'penanggung_jawab'   => ['required', 'string', 'max:150'],
-            'nomor_register'     => ['required', 'string', 'max:100'],
+            'no_bast'            => ['nullable', 'string', 'max:100'],
+            'sumber_dana'        => ['nullable', 'string', 'max:100'],
+            'tahun_anggaran'     => ['nullable', 'digits:4', 'integer'],
+            'lokasi_ruang'       => ['nullable', 'string', 'max:100'],
+            'kondisi'            => ['nullable', 'in:Baik,Rusak Ringan,Rusak Berat'],
+            'penanggung_jawab'   => ['nullable', 'string', 'max:150'],
+            'nomor_register'     => ['nullable', 'string', 'max:100'],
             'keterangan'         => ['nullable', 'string'],
-            'tautan_dokumen'     => ['nullable', 'url', 'max:255'],
+            'tautan_dokumen'     => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -50,14 +45,13 @@ class UpdateInventarisRequest extends FormRequest
     {
         return [
             'kode_barang.required'   => 'Kode barang wajib diisi.',
-            'kode_barang.unique'     => 'Kode barang sudah terdaftar untuk barang lain.',
-            'tanggal_perolehan.date' => 'Format tanggal perolehan tidak valid.',
             'nama_barang.required'   => 'Nama barang wajib diisi.',
+            'jumlah.required'        => 'Jumlah barang wajib diisi.',
             'jumlah.min'             => 'Jumlah barang minimal 1 unit.',
+            'harga_satuan.required'  => 'Harga satuan wajib diisi.',
             'harga_satuan.min'       => 'Harga satuan tidak boleh negatif.',
             'kondisi.in'             => 'Kondisi barang harus Baik, Rusak Ringan, atau Rusak Berat.',
-            'tahun_anggaran.digits'  => 'Tahun anggaran harus 4 digit tahun (contoh: 2024).',
-            'tautan_dokumen.url'     => 'Tautan dokumen harus berupa URL valid (http:// atau https://).',
+            'tahun_anggaran.digits'  => 'Tahun anggaran harus 4 digit tahun (contoh: 2026).',
         ];
     }
 }

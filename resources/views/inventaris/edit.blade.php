@@ -25,13 +25,13 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div class="border-b border-slate-100 pb-3 flex items-center space-x-2">
                 <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">1</span>
-                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Identitas & Spesifikasi Barang</h2>
+                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Identitas & Spesifikasi Barang/Aset</h2>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Kode Barang -->
                 <div>
-                    <label for="kode_barang" class="block text-xs font-bold text-slate-700 uppercase mb-1">Kode Barang <span class="text-rose-500">*</span></label>
+                    <label for="kode_barang" class="block text-xs font-bold text-slate-700 uppercase mb-1">Kode Barang / Rekening Aset <span class="text-rose-500">*</span></label>
                     <input type="text" name="kode_barang" id="kode_barang" value="{{ old('kode_barang', $inventaris->kode_barang) }}" required
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('kode_barang') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono">
                     @error('kode_barang')
@@ -41,7 +41,7 @@
 
                 <!-- Nama Barang -->
                 <div>
-                    <label for="nama_barang" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Barang <span class="text-rose-500">*</span></label>
+                    <label for="nama_barang" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Barang / Aset <span class="text-rose-500">*</span></label>
                     <input type="text" name="nama_barang" id="nama_barang" value="{{ old('nama_barang', $inventaris->nama_barang) }}" required
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('nama_barang') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                     @error('nama_barang')
@@ -51,18 +51,18 @@
 
                 <!-- Kategori -->
                 <div>
-                    <label for="kategori" class="block text-xs font-bold text-slate-700 uppercase mb-1">Kategori <span class="text-rose-500">*</span></label>
-                    <input type="text" name="kategori" id="kategori" value="{{ old('kategori', $inventaris->kategori) }}" required
+                    <label for="kategori" class="block text-xs font-bold text-slate-700 uppercase mb-1">Kategori (Opsional)</label>
+                    <input type="text" name="kategori" id="kategori" value="{{ old('kategori', $inventaris->kategori) }}" placeholder="Contoh: Buku, Peralatan..."
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('kategori') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                     @error('kategori')
                         <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Nomor Register -->
+                <!-- Nomor Register / Label -->
                 <div>
-                    <label for="nomor_register" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nomor Register <span class="text-rose-500">*</span></label>
-                    <input type="text" name="nomor_register" id="nomor_register" value="{{ old('nomor_register', $inventaris->nomor_register) }}" required
+                    <label for="nomor_register" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nomor Register / Label (Opsional)</label>
+                    <input type="text" name="nomor_register" id="nomor_register" value="{{ old('nomor_register', $inventaris->nomor_register) }}" placeholder="Contoh: REG-001"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('nomor_register') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                     @error('nomor_register')
                         <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
@@ -71,8 +71,8 @@
 
                 <!-- Merk & Spesifikasi -->
                 <div class="md:col-span-2">
-                    <label for="merk_spesifikasi" class="block text-xs font-bold text-slate-700 uppercase mb-1">Merk / Spesifikasi Lengkap <span class="text-rose-500">*</span></label>
-                    <textarea name="merk_spesifikasi" id="merk_spesifikasi" rows="3" required
+                    <label for="merk_spesifikasi" class="block text-xs font-bold text-slate-700 uppercase mb-1">Merk / Spesifikasi Lengkap (Opsional)</label>
+                    <textarea name="merk_spesifikasi" id="merk_spesifikasi" rows="3"
                               class="w-full px-3 py-2 text-sm bg-slate-50 border @error('merk_spesifikasi') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">{{ old('merk_spesifikasi', $inventaris->merk_spesifikasi) }}</textarea>
                     @error('merk_spesifikasi')
                         <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
@@ -91,38 +91,38 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Tanggal Perolehan -->
                 <div>
-                    <label for="tanggal_perolehan" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tanggal Perolehan <span class="text-rose-500">*</span></label>
+                    <label for="tanggal_perolehan" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tanggal Perolehan</label>
                     <input type="date" name="tanggal_perolehan" id="tanggal_perolehan" 
-                           value="{{ old('tanggal_perolehan', $inventaris->tanggal_perolehan ? $inventaris->tanggal_perolehan->format('Y-m-d') : '') }}" required
+                           value="{{ old('tanggal_perolehan', $inventaris->tanggal_perolehan ? $inventaris->tanggal_perolehan->format('Y-m-d') : '') }}"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('tanggal_perolehan') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
                 <!-- Tanggal Pencatatan -->
                 <div>
-                    <label for="tanggal_pencatatan" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tanggal Pencatatan (Buku) <span class="text-rose-500">*</span></label>
+                    <label for="tanggal_pencatatan" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tanggal Pencatatan (Buku)</label>
                     <input type="date" name="tanggal_pencatatan" id="tanggal_pencatatan" 
-                           value="{{ old('tanggal_pencatatan', $inventaris->tanggal_pencatatan ? $inventaris->tanggal_pencatatan->format('Y-m-d') : '') }}" required
+                           value="{{ old('tanggal_pencatatan', $inventaris->tanggal_pencatatan ? $inventaris->tanggal_pencatatan->format('Y-m-d') : '') }}"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('tanggal_pencatatan') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
                 <!-- Tahun Anggaran -->
                 <div>
-                    <label for="tahun_anggaran" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tahun Anggaran <span class="text-rose-500">*</span></label>
-                    <input type="number" name="tahun_anggaran" id="tahun_anggaran" value="{{ old('tahun_anggaran', $inventaris->tahun_anggaran) }}" min="2000" max="2099" required
+                    <label for="tahun_anggaran" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tahun Anggaran</label>
+                    <input type="number" name="tahun_anggaran" id="tahun_anggaran" value="{{ old('tahun_anggaran', $inventaris->tahun_anggaran) }}" min="2000" max="2099"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('tahun_anggaran') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
                 <!-- Sumber Dana -->
                 <div>
-                    <label for="sumber_dana" class="block text-xs font-bold text-slate-700 uppercase mb-1">Sumber Dana <span class="text-rose-500">*</span></label>
-                    <input type="text" name="sumber_dana" id="sumber_dana" value="{{ old('sumber_dana', $inventaris->sumber_dana) }}" required
+                    <label for="sumber_dana" class="block text-xs font-bold text-slate-700 uppercase mb-1">Sumber Dana</label>
+                    <input type="text" name="sumber_dana" id="sumber_dana" value="{{ old('sumber_dana', $inventaris->sumber_dana) }}"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('sumber_dana') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
                 <!-- No BAST -->
                 <div class="sm:col-span-2">
-                    <label for="no_bast" class="block text-xs font-bold text-slate-700 uppercase mb-1">No. BAST <span class="text-rose-500">*</span></label>
-                    <input type="text" name="no_bast" id="no_bast" value="{{ old('no_bast', $inventaris->no_bast) }}" required
+                    <label for="no_bast" class="block text-xs font-bold text-slate-700 uppercase mb-1">No. BAST (Berita Acara Serah Terima)</label>
+                    <input type="text" name="no_bast" id="no_bast" value="{{ old('no_bast', $inventaris->no_bast) }}"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('no_bast') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
@@ -130,13 +130,13 @@
                 <div>
                     <label for="jumlah" class="block text-xs font-bold text-slate-700 uppercase mb-1">Jumlah Unit <span class="text-rose-500">*</span></label>
                     <input type="number" name="jumlah" id="jumlah" value="{{ old('jumlah', $inventaris->jumlah) }}" min="1" required
-                           class="w-full px-3 py-2 text-sm bg-slate-50 border @error('jumlah') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+                           class="w-full px-3 py-2 text-sm bg-slate-50 border @error('jumlah') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-bold">
                 </div>
 
                 <!-- Satuan -->
                 <div>
-                    <label for="satuan" class="block text-xs font-bold text-slate-700 uppercase mb-1">Satuan Barang <span class="text-rose-500">*</span></label>
-                    <input type="text" name="satuan" id="satuan" value="{{ old('satuan', $inventaris->satuan) }}" required
+                    <label for="satuan" class="block text-xs font-bold text-slate-700 uppercase mb-1">Satuan Barang</label>
+                    <input type="text" name="satuan" id="satuan" value="{{ old('satuan', $inventaris->satuan) }}"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('satuan') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
@@ -146,18 +146,18 @@
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
                         <input type="number" step="0.01" name="harga_satuan" id="harga_satuan" value="{{ old('harga_satuan', $inventaris->harga_satuan) }}" min="0" required
-                               class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border @error('harga_satuan') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+                               class="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border @error('harga_satuan') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-bold">
                     </div>
                 </div>
 
                 <!-- Nilai Perolehan Preview (Kalkulasi Otomatis) -->
                 <div class="sm:col-span-2 lg:col-span-3 bg-blue-50/70 p-4 rounded-xl border border-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div>
-                        <span class="text-xs font-bold text-blue-900 uppercase">Rekalkulasi Otomatis Nilai Perolehan:</span>
-                        <p class="text-xs text-blue-700">Dihitung otomatis (Jumlah × Harga Satuan) sebelum disimpan ke database.</p>
+                        <span class="text-xs font-bold text-blue-900 uppercase">Kalkulasi Otomatis Nilai Perolehan:</span>
+                        <p class="text-xs text-blue-700">Dihitung otomatis (Jumlah × Harga Satuan) dan disimpan ke database.</p>
                     </div>
                     <div class="text-right">
-                        <span id="preview_nilai_perolehan" class="text-xl font-black text-blue-900 font-mono">Rp 0</span>
+                        <span id="preview_nilai_perolehan" class="text-xl font-black text-blue-900 font-mono">Rp {{ number_format($inventaris->nilai_perolehan, 2, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -173,16 +173,16 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Lokasi Ruang -->
                 <div>
-                    <label for="lokasi_ruang" class="block text-xs font-bold text-slate-700 uppercase mb-1">Lokasi / Ruang <span class="text-rose-500">*</span></label>
-                    <input type="text" name="lokasi_ruang" id="lokasi_ruang" value="{{ old('lokasi_ruang', $inventaris->lokasi_ruang) }}" required
+                    <label for="lokasi_ruang" class="block text-xs font-bold text-slate-700 uppercase mb-1">Lokasi / Ruang (Opsional)</label>
+                    <input type="text" name="lokasi_ruang" id="lokasi_ruang" value="{{ old('lokasi_ruang', $inventaris->lokasi_ruang) }}"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('lokasi_ruang') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
                 <!-- Kondisi -->
                 <div>
-                    <label for="kondisi" class="block text-xs font-bold text-slate-700 uppercase mb-1">Kondisi Barang <span class="text-rose-500">*</span></label>
-                    <select name="kondisi" id="kondisi" required
-                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('kondisi') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
+                    <label for="kondisi" class="block text-xs font-bold text-slate-700 uppercase mb-1">Kondisi Barang</label>
+                    <select name="kondisi" id="kondisi"
+                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('kondisi') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-medium">
                         <option value="Baik" {{ old('kondisi', $inventaris->kondisi) == 'Baik' ? 'selected' : '' }}>Baik</option>
                         <option value="Rusak Ringan" {{ old('kondisi', $inventaris->kondisi) == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
                         <option value="Rusak Berat" {{ old('kondisi', $inventaris->kondisi) == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
@@ -191,8 +191,8 @@
 
                 <!-- Penanggung Jawab -->
                 <div>
-                    <label for="penanggung_jawab" class="block text-xs font-bold text-slate-700 uppercase mb-1">Penanggung Jawab <span class="text-rose-500">*</span></label>
-                    <input type="text" name="penanggung_jawab" id="penanggung_jawab" value="{{ old('penanggung_jawab', $inventaris->penanggung_jawab) }}" required
+                    <label for="penanggung_jawab" class="block text-xs font-bold text-slate-700 uppercase mb-1">Penanggung Jawab (Opsional)</label>
+                    <input type="text" name="penanggung_jawab" id="penanggung_jawab" value="{{ old('penanggung_jawab', $inventaris->penanggung_jawab) }}"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('penanggung_jawab') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
             </div>
@@ -202,14 +202,14 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div class="border-b border-slate-100 pb-3 flex items-center space-x-2">
                 <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-bold">4</span>
-                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Keterangan Tambahan & Tautan Dokumen</h2>
+                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Keterangan Tambahan & Tautan / Referensi</h2>
             </div>
 
             <div class="grid grid-cols-1 gap-4">
                 <!-- Tautan Dokumen -->
                 <div>
-                    <label for="tautan_dokumen" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tautan Dokumen / File Pendukung (Opsional)</label>
-                    <input type="url" name="tautan_dokumen" id="tautan_dokumen" value="{{ old('tautan_dokumen', $inventaris->tautan_dokumen) }}" placeholder="https://drive.google.com/..."
+                    <label for="tautan_dokumen" class="block text-xs font-bold text-slate-700 uppercase mb-1">Tautan / Referensi Dokumen (Opsional)</label>
+                    <input type="text" name="tautan_dokumen" id="tautan_dokumen" value="{{ old('tautan_dokumen', $inventaris->tautan_dokumen) }}" placeholder="https://drive.google.com/... atau catatan referensi"
                            class="w-full px-3 py-2 text-sm bg-slate-50 border @error('tautan_dokumen') border-rose-500 @else border-slate-200 @enderror rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white">
                 </div>
 
@@ -228,7 +228,7 @@
                 Batal
             </a>
             <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 hover:shadow-lg transition-all duration-150">
-                <i class="fa-solid fa-floppy-disk mr-2"></i> Perbarui Data Inventaris
+                <i class="fa-solid fa-check mr-2"></i> Perbarui Data
             </button>
         </div>
     </form>
@@ -252,6 +252,5 @@
 
     document.getElementById('jumlah').addEventListener('input', hitungNilaiPerolehan);
     document.getElementById('harga_satuan').addEventListener('input', hitungNilaiPerolehan);
-    window.addEventListener('DOMContentLoaded', hitungNilaiPerolehan);
 </script>
 @endpush
