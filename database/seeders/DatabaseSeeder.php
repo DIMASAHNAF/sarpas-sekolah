@@ -41,9 +41,9 @@ class DatabaseSeeder extends Seeder
         \App\Models\User::firstOrCreate(
             ['email' => 'user@smkn1beringin.sch.id'],
             [
-                'name'     => 'Staf / Petugas Sarpras',
+                'name'     => 'Kepala Program Keahlian (Kaprodi)',
                 'password' => bcrypt('user123'),
-                'role'     => 'user',
+                'role'     => 'kaprodi',
             ]
         );
 

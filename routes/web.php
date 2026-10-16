@@ -24,9 +24,14 @@ Route::middleware('auth')->group(function () {
     Route::get('inventaris/create', [InventarisController::class, 'create'])->name('inventaris.create');
     Route::post('inventaris', [InventarisController::class, 'store'])->name('inventaris.store');
 
-    // Import & Unduh Template Excel (Bisa diakses Admin & User / Staf)
+    // Import & Unduh Template Excel (Bisa diakses Admin & User / Staf / Kaprodi)
     Route::post('inventaris/import/excel', [InventarisController::class, 'importExcel'])->name('inventaris.import.excel');
     Route::get('inventaris/template/excel', [InventarisController::class, 'downloadTemplate'])->name('inventaris.template.excel');
+
+    // Modul Pengajuan Barang (Bisa diakses Kaprodi & Admin)
+    Route::get('pengajuan-barang/{pengajuan_barang}/print', [\App\Http\Controllers\PengajuanBarangController::class, 'print'])->name('pengajuan-barang.print');
+    Route::get('pengajuan-barang/{pengajuan_barang}/export-excel', [\App\Http\Controllers\PengajuanBarangController::class, 'exportExcel'])->name('pengajuan-barang.export-excel');
+    Route::resource('pengajuan-barang', \App\Http\Controllers\PengajuanBarangController::class);
 
     // Rute Khusus Administrator (Akses Penuh / Tindakan Sensitif)
     Route::middleware(EnsureUserIsAdmin::class)->group(function () {

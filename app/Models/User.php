@@ -54,10 +54,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah user memiliki peran kaprodi.
+     */
+    public function isKaprodi(): bool
+    {
+        return $this->role === 'kaprodi';
+    }
+
+    /**
      * Cek apakah user memiliki peran staff/user biasa.
      */
     public function isUser(): bool
     {
-        return $this->role === 'user';
+        return $this->role === 'user' || $this->role === 'kaprodi';
+    }
+
+    /**
+     * Relasi ke pengajuan barang yang dibuat oleh pengguna.
+     */
+    public function pengajuanBarangs()
+    {
+        return $this->hasMany(PengajuanBarang::class);
     }
 }

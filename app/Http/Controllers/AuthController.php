@@ -45,7 +45,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
-            $roleLabel = $user->role === 'admin' ? 'Administrator' : 'Staf / Pengguna';
+            $roleLabel = $user->role === 'admin' ? 'Administrator' : ($user->role === 'kaprodi' ? 'Kaprodi' : 'Staf / Pengguna');
 
             return redirect()->intended(route('inventaris.index'))
                 ->with('success', "Selamat datang kembali, {$user->name}! Anda masuk sebagai {$roleLabel}.");

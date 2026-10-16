@@ -74,13 +74,40 @@
             -webkit-box-orient: vertical !important;
             overflow: hidden !important;
         }
+
+        /* Global Print Rule: Sembunyikan elemen UI website saat cetak */
+        @media print {
+            header, 
+            footer, 
+            nav, 
+            aside,
+            .no-print, 
+            [role="navigation"],
+            .fixed.bottom-0,
+            .fixed,
+            #mobile-nav {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            main {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: none !important;
+                width: 100% !important;
+            }
+        }
     </style>
     @stack('styles')
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col" x-data="{ mobileMenuOpen: false }">
 
     <!-- Top Navigation Bar -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs no-print print:hidden">
         <div class="max-w-[1600px] mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-14 sm:h-16">
 
@@ -115,6 +142,11 @@
                            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-150 {{ request()->routeIs('inventaris.create') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             <i class="fa-solid fa-plus-circle mr-1.5 text-emerald-600"></i> Tambah Barang
                         </a>
+
+                        <a href="{{ route('pengajuan-barang.index') }}" 
+                           class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-150 {{ request()->routeIs('pengajuan-barang.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            <i class="fa-solid fa-file-signature mr-1.5 text-indigo-600"></i> Pengajuan Barang
+                        </a>
                     @endif
 
                     @if(auth()->check() && auth()->user()->isAdmin())
@@ -137,13 +169,13 @@
                     @auth
                         <!-- User Role Badge (Desktop) -->
                         <div class="hidden sm:flex items-center space-x-2.5 px-3 py-1.5 bg-slate-100/80 rounded-xl border border-slate-200">
-                            <div class="w-6 h-6 rounded-lg {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white' }} flex items-center justify-center text-[10px] font-bold">
+                            <div class="w-6 h-6 rounded-lg {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-purple-600 text-white' }} flex items-center justify-center text-[10px] font-bold">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
                             <div class="text-left text-xs leading-tight">
-                                <span class="font-bold text-slate-800 block truncate max-w-[120px]">{{ auth()->user()->name }}</span>
-                                <span class="text-[10px] font-semibold {{ auth()->user()->isAdmin() ? 'text-blue-600' : 'text-emerald-600' }} uppercase">
-                                    {{ auth()->user()->isAdmin() ? 'Administrator' : 'Staf / User' }}
+                                <span class="font-bold text-slate-800 block truncate max-w-[140px]">{{ auth()->user()->name }}</span>
+                                <span class="text-[10px] font-semibold {{ auth()->user()->isAdmin() ? 'text-blue-600' : 'text-purple-600' }} uppercase">
+                                    {{ auth()->user()->isAdmin() ? 'Administrator' : 'Kaprodi' }}
                                 </span>
                             </div>
                         </div>
@@ -159,8 +191,8 @@
                         </form>
 
                         <!-- Mobile Role Pill (Compact) -->
-                        <span class="sm:hidden px-2 py-0.5 rounded-full text-[10px] font-bold {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700' }} uppercase">
-                            {{ auth()->user()->isAdmin() ? 'Admin' : 'User' }}
+                        <span class="sm:hidden px-2 py-0.5 rounded-full text-[10px] font-bold {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }} uppercase">
+                            {{ auth()->user()->isAdmin() ? 'Admin' : 'Kaprodi' }}
                         </span>
 
                         <!-- Mobile Hamburger Button -->
@@ -195,14 +227,14 @@
 
             <!-- User Info Card in Drawer -->
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center space-x-3 mb-2">
-                <div class="w-9 h-9 rounded-xl {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-emerald-600 text-white' }} flex items-center justify-center font-bold text-sm">
+                <div class="w-9 h-9 rounded-xl {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-purple-600 text-white' }} flex items-center justify-center font-bold text-sm">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
                 <div class="min-w-0 flex-1">
                     <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->name }}</p>
                     <p class="text-[11px] text-slate-500 truncate">{{ auth()->user()->email }}</p>
-                    <span class="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700' }} uppercase">
-                        {{ auth()->user()->isAdmin() ? 'Administrator (Akses Penuh)' : 'Staf / User (Lihat, Import & Ekspor)' }}
+                    <span class="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }} uppercase">
+                        {{ auth()->user()->isAdmin() ? 'Administrator (Akses Penuh)' : 'Kaprodi (Pengajuan Barang)' }}
                     </span>
                 </div>
             </div>
@@ -218,6 +250,12 @@
                class="flex items-center space-x-2.5 p-2.5 rounded-xl text-xs font-semibold {{ request()->routeIs('inventaris.create') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700 hover:bg-slate-100' }}">
                 <i class="fa-solid fa-circle-plus text-emerald-600 w-5 text-center"></i>
                 <span>Catat / Tambah Barang Baru</span>
+            </a>
+
+            <a href="{{ route('pengajuan-barang.index') }}" 
+               class="flex items-center space-x-2.5 p-2.5 rounded-xl text-xs font-semibold {{ request()->routeIs('pengajuan-barang.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-100' }}">
+                <i class="fa-solid fa-file-signature text-indigo-600 w-5 text-center"></i>
+                <span>Pengajuan Barang (Kaprodi)</span>
             </a>
 
             @if(auth()->user()->isAdmin())
@@ -294,7 +332,7 @@
 
     <!-- Mobile Bottom Navigation Bar (App-like UX) -->
     @auth
-    <div class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-1.5 flex items-center justify-around shadow-lg">
+    <div id="mobile-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-1.5 flex items-center justify-around shadow-lg no-print print:hidden">
         <a href="{{ route('inventaris.index') }}" 
            class="flex flex-col items-center py-1 px-3 rounded-lg transition-colors {{ request()->routeIs('inventaris.index') ? 'text-blue-600 font-bold' : 'text-slate-500 hover:text-slate-800' }}">
             <i class="fa-solid fa-table-list text-base mb-0.5"></i>
@@ -331,7 +369,7 @@
     @endauth
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-4 sm:py-6 text-center text-xs text-slate-500">
+    <footer class="bg-white border-t border-slate-200 py-4 sm:py-6 text-center text-xs text-slate-500 no-print print:hidden">
         <div class="max-w-[1600px] mx-auto px-4">
             <p>Sistem Informasi Buku Inventaris Barang (BIB) &bull; SMK Negeri 1 Beringin</p>
         </div>

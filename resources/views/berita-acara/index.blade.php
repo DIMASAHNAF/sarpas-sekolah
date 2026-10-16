@@ -22,7 +22,7 @@
         }
 
         /* Sembunyikan elemen bawaan dari app layout saat print */
-        header, footer, .md\:hidden { display: none !important; }
+        header, footer, nav, aside, .no-print, [role="navigation"], .fixed, #mobile-nav, .md\:hidden { display: none !important; }
         
         /* Pastikan elemen pembungkus menggunakan block untuk mencegah bug flex saat print (kertas kosong/terpotong) */
         body, main, #bast-wrapper { 
@@ -74,6 +74,9 @@
     /* Font untuk A4 */
     .font-times {
         font-family: 'Times New Roman', Times, serif;
+    }
+    .font-cambria {
+        font-family: 'Cambria', 'Caladea', Georgia, serif;
     }
 </style>
 @endpush
@@ -268,31 +271,21 @@
         <div id="printArea" class="mx-auto flex flex-col items-center space-y-8 print:space-y-0 pb-10 print:pb-0 origin-top shrink-0" style="transform: scale(0.95);">
             <!-- HALAMAN 1 -->
             <div class="a4-page bg-white font-times text-[13px] text-justify shadow-lg relative">
-                <!-- KOP SURAT -->
-                <div class="flex items-center border-b-4 border-black pb-2 mb-1">
-                    <div class="w-[90px] shrink-0 flex items-center justify-center pr-3">
-                        <img src="{{ asset('assets/sumut-logo.webp') }}" class="w-20 h-20 object-contain">
-                    </div>
-                    <div class="flex-1 text-center pr-[20px]">
-                        <h2 class="text-[14.5px] font-bold tracking-wide uppercase leading-tight">PEMERINTAH PROVINSI SUMATERA UTARA</h2>
-                        <h2 class="text-[14.5px] font-bold tracking-wide uppercase leading-tight">DINAS PENDIDIKAN</h2>
-                        <h1 class="text-[16.5px] font-extrabold tracking-wide uppercase leading-tight mt-0.5">SEKOLAH MENENGAH KEJURUAN (SMK) NEGERI 1 BERINGIN</h1>
-                        <p class="text-[10px] leading-tight mt-1 text-slate-900">Jalan Pendidikan No. 3 Emplasmen Kuala Namu, Kecamatan Beringin, Kabupaten Deli Serdang - 20552</p>
-                        <p class="text-[10px] leading-tight mt-0.5 text-slate-900">Email : smknsatuberingin@gmail.com | Website : www.smknegeri1beringin.sch.id | NPSN : 10261468 | NSS : 531070117025</p>
-                    </div>
+                <!-- KOP SURAT (HD BANNER) -->
+                <div class="mb-5">
+                    <img src="{{ asset('assets/kop-surat-landscape.png') }}" class="w-full object-contain" alt="Kop Surat Resmi SMKN 1 Beringin">
                 </div>
-                <div class="border-b-[1px] border-black w-full mb-5"></div>
 
                 <!-- JUDUL -->
                 <div class="text-center mb-5">
                     <h3 class="text-[14px] font-bold underline tracking-wide uppercase">BERITA ACARA SERAH TERIMA</h3>
-                    <p class="text-[12.5px] font-medium mt-0.5">Nomor : <span class="font-semibold" x-text="formData.nomor"></span></p>
+                    <p class="text-[12.5px] mt-0.5">Nomor : <span x-text="formData.nomor"></span></p>
                 </div>
 
                 <!-- ISI PARAGRAF 1 -->
                 <div class="space-y-3">
                     <p class="indent-8 leading-normal">
-                        Pada hari ini <span class="font-medium underline" x-text="formData.hari"></span> tanggal <span class="font-medium underline" x-text="formData.tanggal"></span> bulan <span class="font-medium underline" x-text="formData.bulan"></span> tahun <span class="font-medium underline" x-text="formData.tahun"></span>, kami yang bertanda tangan dibawah ini masing - masing :
+                        Pada hari ini <span x-text="formData.hari"></span> tanggal <span x-text="formData.tanggal"></span> bulan <span x-text="formData.bulan"></span> tahun <span x-text="formData.tahun"></span>, kami yang bertanda tangan dibawah ini masing - masing :
                     </p>
 
                     <table class="w-full">
@@ -329,9 +322,9 @@
                             <template x-for="(brg, idx) in barangList" :key="brg.id">
                                 <tr>
                                     <td class="border border-black py-1.5 px-1 text-center align-top" x-text="idx + 1 + '.'"></td>
-                                    <td class="border border-black py-1.5 px-2 align-top font-medium" x-text="brg.nama"></td>
+                                    <td class="border border-black py-1.5 px-2 align-top" x-text="brg.nama"></td>
                                     <td class="border border-black py-1.5 px-2 align-top leading-tight" x-text="brg.spek"></td>
-                                    <td class="border border-black py-1.5 px-1.5 text-center align-top font-medium" x-text="brg.jumlah"></td>
+                                    <td class="border border-black py-1.5 px-1.5 text-center align-top" x-text="brg.jumlah"></td>
                                     <td class="border border-black py-1.5 px-1.5 text-center align-top" x-text="brg.satuan"></td>
                                     <td class="border border-black py-1.5 px-2 text-center align-top leading-tight" x-text="brg.ket"></td>
                                 </tr>
@@ -340,7 +333,7 @@
                     </table>
 
                     <p class="indent-8 leading-normal">
-                        Selanjutnya barang diinventariskan di <span class="font-semibold underline" x-text="formData.lokasi"></span>. Dengan ketentuan:
+                        Selanjutnya barang diinventariskan di <span x-text="formData.lokasi"></span>. Dengan ketentuan:
                     </p>
                     <ol class="list-decimal pl-7 space-y-1 text-[12px] pt-1">
                         <li>Pihak kedua menggunakan barang untuk kepentingan sekolah.</li>
