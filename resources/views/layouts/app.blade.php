@@ -158,6 +158,10 @@
                            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-150 {{ request()->routeIs('berita-acara.index') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             <i class="fa-solid fa-file-contract mr-1.5 text-indigo-600"></i> Berita Acara
                         </a>
+                        <a href="{{ route('pengguna.index') }}" 
+                           class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-150 {{ request()->routeIs('pengguna.*') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            <i class="fa-solid fa-users-gear mr-1.5 text-blue-600"></i> Pengguna & Staf
+                        </a>
                     @endif
                     
                     <div class="w-px h-6 bg-slate-200 mx-2"></div>
@@ -169,13 +173,13 @@
                     @auth
                         <!-- User Role Badge (Desktop) -->
                         <div class="hidden sm:flex items-center space-x-2.5 px-3 py-1.5 bg-slate-100/80 rounded-xl border border-slate-200">
-                            <div class="w-6 h-6 rounded-lg {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-purple-600 text-white' }} flex items-center justify-center text-[10px] font-bold">
+                            <div class="w-6 h-6 rounded-lg {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-indigo-600 text-white' }} flex items-center justify-center text-[10px] font-bold">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
                             <div class="text-left text-xs leading-tight">
-                                <span class="font-bold text-slate-800 block truncate max-w-[140px]">{{ auth()->user()->name }}</span>
-                                <span class="text-[10px] font-semibold {{ auth()->user()->isAdmin() ? 'text-blue-600' : 'text-purple-600' }} uppercase">
-                                    {{ auth()->user()->isAdmin() ? 'Administrator' : 'Kaprodi' }}
+                                <span class="font-bold text-slate-800 block truncate max-w-[150px]">{{ auth()->user()->name }}</span>
+                                <span class="text-[10px] font-semibold {{ auth()->user()->isAdmin() ? 'text-blue-600' : 'text-indigo-600' }} block truncate max-w-[150px]">
+                                    {{ auth()->user()->role_label }}
                                 </span>
                             </div>
                         </div>
@@ -191,8 +195,8 @@
                         </form>
 
                         <!-- Mobile Role Pill (Compact) -->
-                        <span class="sm:hidden px-2 py-0.5 rounded-full text-[10px] font-bold {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }} uppercase">
-                            {{ auth()->user()->isAdmin() ? 'Admin' : 'Kaprodi' }}
+                        <span class="sm:hidden px-2 py-0.5 rounded-full text-[10px] font-bold {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700' }} uppercase truncate max-w-[120px]">
+                            {{ auth()->user()->isAdmin() ? 'Admin' : (auth()->user()->jurusan ?: 'Staf') }}
                         </span>
 
                         <!-- Mobile Hamburger Button -->
@@ -227,14 +231,14 @@
 
             <!-- User Info Card in Drawer -->
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center space-x-3 mb-2">
-                <div class="w-9 h-9 rounded-xl {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-purple-600 text-white' }} flex items-center justify-center font-bold text-sm">
+                <div class="w-9 h-9 rounded-xl {{ auth()->user()->isAdmin() ? 'bg-blue-600 text-white' : 'bg-indigo-600 text-white' }} flex items-center justify-center font-bold text-sm">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
                 <div class="min-w-0 flex-1">
                     <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->name }}</p>
                     <p class="text-[11px] text-slate-500 truncate">{{ auth()->user()->email }}</p>
-                    <span class="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700' }} uppercase">
-                        {{ auth()->user()->isAdmin() ? 'Administrator (Akses Penuh)' : 'Kaprodi (Pengajuan Barang)' }}
+                    <span class="inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded {{ auth()->user()->isAdmin() ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700' }}">
+                        {{ auth()->user()->role_label }}
                     </span>
                 </div>
             </div>
@@ -255,7 +259,7 @@
             <a href="{{ route('pengajuan-barang.index') }}" 
                class="flex items-center space-x-2.5 p-2.5 rounded-xl text-xs font-semibold {{ request()->routeIs('pengajuan-barang.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-100' }}">
                 <i class="fa-solid fa-file-signature text-indigo-600 w-5 text-center"></i>
-                <span>Pengajuan Barang (Kaprodi)</span>
+                <span>Pengajuan Barang</span>
             </a>
 
             @if(auth()->user()->isAdmin())
@@ -268,6 +272,11 @@
                    class="flex items-center space-x-2.5 p-2.5 rounded-xl text-xs font-semibold {{ request()->routeIs('berita-acara.index') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700 hover:bg-slate-100' }}">
                     <i class="fa-solid fa-file-contract text-indigo-600 w-5 text-center"></i>
                     <span>Buat Berita Acara (BAST)</span>
+                </a>
+                <a href="{{ route('pengguna.index') }}" 
+                   class="flex items-center space-x-2.5 p-2.5 rounded-xl text-xs font-semibold {{ request()->routeIs('pengguna.*') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-700 hover:bg-slate-100' }}">
+                    <i class="fa-solid fa-users-gear text-blue-600 w-5 text-center"></i>
+                    <span>Kelola Pengguna & Staf Unit</span>
                 </a>
             @endif
 

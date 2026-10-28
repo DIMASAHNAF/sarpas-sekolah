@@ -10,21 +10,57 @@ class PengajuanBarang extends Model
     use HasFactory;
 
     /**
-     * Daftar Resmi Program Keahlian / Jurusan SMKN 1 Beringin.
+     * Daftar Resmi 7 Jurusan Program Keahlian + 2 Unit SMKN 1 Beringin.
      */
     public const DAFTAR_JURUSAN = [
-        'Kecantikan dan Spa',
+        'Kecantikan dan SPA',
         'Kuliner',
+        'PPLG (RPL)',
+        'TJKT (TKJ)',
+        'Pariwisata',
         'Perhotelan',
-        'PPLG',
         'Tata Busana',
-        'TJKT',
-        'ULP',
+        'UKS',
+        'Perpustakaan',
     ];
 
     public static function getJurusanList(): array
     {
         return self::DAFTAR_JURUSAN;
+    }
+
+    /**
+     * Mengembalikan daftar alias kata kunci untuk pencocokan jurusan yang fleksibel.
+     */
+    public static function getAliases(?string $jurusan): array
+    {
+        if (!$jurusan) {
+            return [];
+        }
+
+        $map = [
+            'Kecantikan dan SPA' => ['Kecantikan dan SPA', 'Kecantikan dan Spa', 'Kecantikan & Spa', 'Tata Kecantikan', 'Kecantikan', 'SPA'],
+            'Kuliner'            => ['Kuliner', 'Tata Boga', 'Boga'],
+            'PPLG (RPL)'         => ['PPLG (RPL)', 'PPLG', 'RPL', 'Rekayasa Perangkat Lunak'],
+            'TJKT (TKJ)'         => ['TJKT (TKJ)', 'TJKT', 'TKJ', 'Teknik Jaringan Komputer dan Telekomunikasi', 'TKJ 1', 'TKJ 2'],
+            'Pariwisata'         => ['Pariwisata', 'ULP', 'UPW', 'Usaha Layanan Pariwisata', 'Usaha Perjalanan Wisata'],
+            'Perhotelan'         => ['Perhotelan', 'Hotel', 'Akomodasi Perhotelan'],
+            'Tata Busana'        => ['Tata Busana', 'Busana', 'Tata Busana (TB)'],
+            'UKS'                => ['UKS', 'Unit Kesehatan Sekolah', 'Kesehatan'],
+            'Perpustakaan'       => ['Perpustakaan', 'Perpus'],
+        ];
+
+        if (isset($map[$jurusan])) {
+            return $map[$jurusan];
+        }
+
+        foreach ($map as $key => $aliases) {
+            if (strcasecmp($key, $jurusan) === 0 || in_array($jurusan, $aliases)) {
+                return $aliases;
+            }
+        }
+
+        return [$jurusan];
     }
 
     protected $fillable = [

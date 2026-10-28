@@ -118,12 +118,25 @@
 
                 <!-- Program Keahlian / Jurusan -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Program Keahlian (Jurusan)</label>
-                    <select name="program_keahlian" x-model="formData.programKeahlian" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500" required>
-                        @foreach($jurusanList as $jurusan)
-                            <option value="{{ $jurusan }}">{{ $jurusan }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Program Keahlian / Unit
+                        @if(!auth()->user()->isAdmin())
+                            <span class="text-indigo-600 font-bold">(Terkunci Sesuai Unit Anda)</span>
+                        @endif
+                    </label>
+                    @if(auth()->user()->isAdmin())
+                        <select name="program_keahlian" x-model="formData.programKeahlian" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500" required>
+                            @foreach($jurusanList as $jurusan)
+                                <option value="{{ $jurusan }}">{{ $jurusan }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div class="flex items-center space-x-2 px-3 py-2 bg-indigo-50/80 border border-indigo-200 rounded-xl text-indigo-900 font-bold text-xs">
+                            <i class="fa-solid fa-building-columns text-indigo-600"></i>
+                            <span>{{ auth()->user()->jurusan }}</span>
+                            <input type="hidden" name="program_keahlian" value="{{ auth()->user()->jurusan }}">
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Laboratorium / Bengkel -->
@@ -223,6 +236,58 @@
                                 <div>
                                     <label class="block text-[11px] font-medium text-slate-600 mb-1">Catatan / Alasan</label>
                                     <input type="text" :name="`items[${index}][catatan]`" x-model="item.catatan" placeholder="Kebutuhan Uji Kompetensi Keahlian" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs outline-none">
+                                </div>
+
+                                <!-- Upload Foto / Gambar Barang & Sesuaikan Ukuran -->
+                                <div class="pt-2 border-t border-slate-200/80 space-y-2">
+                                    <label class="block text-[11px] font-semibold text-slate-700">
+                                        <i class="fa-regular fa-image mr-1 text-indigo-600"></i> Lampiran Gambar Barang
+                                    </label>
+
+                                    <!-- Upload State: Belum ada gambar -->
+                                    <div x-show="!item.gambar_preview" class="border border-dashed border-slate-300 hover:border-indigo-400 rounded-xl p-3 text-center bg-white hover:bg-indigo-50/20 transition relative cursor-pointer">
+                                        <input type="file" @change="handleItemImage($event, item)" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                        <div class="flex items-center justify-center space-x-2 text-slate-600">
+                                            <i class="fa-solid fa-cloud-arrow-up text-indigo-600 text-sm"></i>
+                                            <span class="text-xs font-bold">Pilih / Upload Gambar</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">JPG, PNG, WEBP (Akan muncul di kolom tabel & lembar cetak)</p>
+                                    </div>
+
+                                    <!-- Preview State: Sudah ada gambar -->
+                                    <div x-show="item.gambar_preview" class="space-y-2" style="display: none;">
+                                        <div class="relative rounded-xl border border-slate-200 bg-white p-2 flex items-center space-x-3">
+                                            <img :src="item.gambar_preview" class="w-14 h-12 object-contain rounded-lg border border-slate-100 bg-slate-50 p-1">
+                                            <div class="flex-1 min-w-0 text-left">
+                                                <span class="text-[11px] font-bold text-slate-800 block truncate" x-text="item.gambar_nama || 'Foto Barang'"></span>
+                                                <span class="text-[10px] text-emerald-600 font-semibold flex items-center">
+                                                    <i class="fa-solid fa-circle-check mr-1 text-[9px]"></i> Muncul pada cetakan
+                                                </span>
+                                            </div>
+                                            <button @click="removeItemImage(item)" type="button" class="w-7 h-7 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 flex items-center justify-center transition" title="Hapus Gambar">
+                                                <i class="fa-solid fa-xmark text-sm font-bold"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Pengatur Skala / Ukuran (Seperti di Berita Acara) -->
+                                        <div class="bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-[11px] font-bold text-indigo-900 flex items-center">
+                                                    <i class="fa-solid fa-up-right-and-down-left-from-center mr-1 text-[10px] text-indigo-600"></i> Sesuaikan Ukuran Gambar di Dokumen:
+                                                </span>
+                                                <span class="text-xs font-extrabold text-indigo-600 font-mono" x-text="(item.gambar_scale || 100) + '%'"></span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-[10px] text-slate-400 font-medium">Kecil</span>
+                                                <input type="range" x-model.number="item.gambar_scale" min="40" max="250" step="5" class="w-full h-1.5 bg-indigo-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                                                <span class="text-[10px] text-slate-400 font-medium">Besar</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden Input -->
+                                    <input type="hidden" :name="`items[${index}][gambar_base64]`" :value="item.gambar_base64 || ''">
+                                    <input type="hidden" :name="`items[${index}][gambar_scale]`" :value="item.gambar_scale || 100">
                                 </div>
 
                                 <!-- Subtotal per item -->
@@ -335,8 +400,17 @@
                         <tr>
                             <td class="border border-black p-1 text-center" x-text="idx + 1"></td>
                             <td class="border border-black p-1 font-semibold" x-text="item.nama"></td>
-                            <td class="border border-black p-1 text-center text-[9px] text-slate-400 italic">
-                                <span>(Gambar)</span>
+                            <td class="border border-black p-1 text-center align-middle">
+                                <template x-if="item.gambar_preview">
+                                    <div class="flex items-center justify-center p-0.5 overflow-hidden">
+                                        <img :src="item.gambar_preview" 
+                                             :style="`max-height: ${(45 * (item.gambar_scale || 100) / 100).toFixed(0)}px; max-width: ${(80 * (item.gambar_scale || 100) / 100).toFixed(0)}px;`" 
+                                             class="object-contain inline-block rounded border border-slate-200">
+                                    </div>
+                                </template>
+                                <template x-if="!item.gambar_preview">
+                                    <span class="text-[9px] text-slate-400 italic">(Gambar)</span>
+                                </template>
                             </td>
                             <td class="border border-black p-1" x-text="item.fungsi || '-'"></td>
                             <td class="border border-black p-1 text-center" x-text="item.merk || '-'"></td>
@@ -409,7 +483,7 @@
         return {
             formData: {
                 jenisPengajuan: 'ALAT PRAKTIKUM',
-                programKeahlian: '{{ $jurusanList[0] ?? "Kecantikan dan Spa" }}',
+                programKeahlian: '{{ !auth()->user()->isAdmin() && auth()->user()->jurusan ? auth()->user()->jurusan : ($jurusanList[0] ?? "Kecantikan dan SPA") }}',
                 labBengkel: '',
                 tahunAnggaran: {{ date('Y') }},
                 tanggalPengajuan: '{{ date("Y-m-d") }}',
@@ -427,7 +501,11 @@
                     jumlah: 10,
                     satuan: 'Unit',
                     hargaSatuan: 850000,
-                    catatan: 'Kebutuhan praktikum siswa'
+                    catatan: 'Kebutuhan praktikum siswa',
+                    gambar_preview: null,
+                    gambar_base64: null,
+                    gambar_nama: null,
+                    gambar_scale: 100
                 }
             ],
 
@@ -441,7 +519,11 @@
                     jumlah: 1,
                     satuan: 'Unit',
                     hargaSatuan: 0,
-                    catatan: ''
+                    catatan: '',
+                    gambar_preview: null,
+                    gambar_base64: null,
+                    gambar_nama: null,
+                    gambar_scale: 100
                 });
             },
 
@@ -449,6 +531,30 @@
                 if (this.items.length > 1) {
                     this.items = this.items.filter(item => item.id !== id);
                 }
+            },
+
+            handleItemImage(event, item) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran file foto maksimal 5 MB.');
+                    return;
+                }
+
+                item.gambar_nama = file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    item.gambar_preview = e.target.result;
+                    item.gambar_base64 = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+
+            removeItemImage(item) {
+                item.gambar_preview = null;
+                item.gambar_base64 = null;
+                item.gambar_nama = null;
             },
 
             get totalBiaya() {

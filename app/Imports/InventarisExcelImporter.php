@@ -20,7 +20,7 @@ class InventarisExcelImporter
      * @param bool $truncateOld Kosongkan database sebelum impor jika true
      * @return array Ringkasan hasil impor
      */
-    public function import($file, bool $truncateOld = false): array
+    public function import($file, bool $truncateOld = false, ?string $defaultJurusan = null, ?int $userId = null): array
     {
         $filePath = $file instanceof UploadedFile ? $file->getRealPath() : $file;
 
@@ -149,6 +149,20 @@ class InventarisExcelImporter
                 $keterangan = trim((string)$sheet->getCell([19, $r])->getValue()) ?: null;
                 $tautan = trim((string)$sheet->getCell([20, $r])->getValue()) ?: null;
 
+                // Tentukan jurusan
+                $jurusanItem = $defaultJurusan;
+                if (!$jurusanItem) {
+                    foreach (\App\Models\PengajuanBarang::DAFTAR_JURUSAN as $j) {
+                        $aliases = \App\Models\PengajuanBarang::getAliases($j);
+                        foreach ($aliases as $a) {
+                            if (stripos($lokasiRuang, $a) !== false || stripos($kategori, $a) !== false || stripos($pj, $a) !== false) {
+                                $jurusanItem = $j;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+
                 // Simpan ke database
                 InventarisBarang::create([
                     'kode_barang'        => $kodeBarang ?: ('INV-' . str_pad($importedCount + 1, 4, '0', STR_PAD_LEFT)),
@@ -157,6 +171,7 @@ class InventarisExcelImporter
                     'nama_barang'        => $namaBarang ?: 'Barang Inventaris',
                     'merk_spesifikasi'   => $merk,
                     'kategori'           => $kategori,
+                    'jurusan'            => $jurusanItem,
                     'jumlah'             => $jumlah,
                     'satuan'             => $satuan,
                     'harga_satuan'       => $hargaSatuan,
@@ -170,6 +185,7 @@ class InventarisExcelImporter
                     'nomor_register'     => $nomorRegister,
                     'keterangan'         => $keterangan,
                     'tautan_dokumen'     => $tautan,
+                    'user_id'            => $userId,
                 ]);
 
                 $importedCount++;

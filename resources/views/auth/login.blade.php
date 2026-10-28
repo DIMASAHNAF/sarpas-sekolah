@@ -23,7 +23,14 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 min-h-screen flex items-center justify-center p-4 antialiased text-slate-800"
-      x-data="{ showPassword: false }">
+      x-data="{ 
+          showPassword: false, 
+          showAccounts: false,
+          fillAccount(login, pass) {
+              document.getElementById('login').value = login;
+              document.getElementById('password').value = pass;
+          }
+      }">
 
     <div class="w-full max-w-md my-8">
 
@@ -148,6 +155,52 @@
                     <span>Masuk ke SIM-SARPRAS</span>
                 </button>
             </form>
+
+            <!-- Bantuan Akun Login Jurusan & Unit -->
+            <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+                <button type="button" @click="showAccounts = !showAccounts" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 transition flex items-center justify-center gap-1 mx-auto">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Petunjuk Akun Login Jurusan & Unit</span>
+                    <i :class="showAccounts ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down'" class="text-[9px]"></i>
+                </button>
+
+                <div x-show="showAccounts" x-cloak class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-left text-xs space-y-2 max-h-56 overflow-y-auto">
+                    <p class="text-[10px] text-slate-500 font-semibold uppercase">Klik akun untuk mengisi form otomatis:</p>
+                    
+                    <button type="button" @click="fillAccount('admin@smkn1beringin.sch.id', 'admin123')" class="w-full text-left p-2 bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200 rounded-xl transition flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-blue-900 block text-[11px]">Administrator (Semua Jurusan)</span>
+                            <span class="text-[10px] text-slate-500 font-mono">admin@smkn1beringin.sch.id</span>
+                        </div>
+                        <span class="text-[10px] font-bold text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200">Gunakan</span>
+                    </button>
+
+                    <div class="pt-1 border-t border-slate-200/60 space-y-1">
+                        @php
+                            $demoAccounts = [
+                                ['nama' => 'Kuliner', 'email' => 'kuliner@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'PPLG (RPL)', 'email' => 'pplg@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'TJKT (TKJ)', 'email' => 'tjkt@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'Kecantikan & SPA', 'email' => 'kecantikan@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'Pariwisata', 'email' => 'pariwisata@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'Perhotelan', 'email' => 'perhotelan@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'Tata Busana', 'email' => 'tatabusana@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'UKS', 'email' => 'uks@smkn1beringin.sch.id', 'pass' => 'password123'],
+                                ['nama' => 'Perpustakaan', 'email' => 'perpustakaan@smkn1beringin.sch.id', 'pass' => 'password123'],
+                            ];
+                        @endphp
+                        @foreach($demoAccounts as $acc)
+                            <button type="button" @click="fillAccount('{{ $acc['email'] }}', '{{ $acc['pass'] }}')" class="w-full text-left p-1.5 hover:bg-white rounded-lg transition flex justify-between items-center text-[11px]">
+                                <div>
+                                    <span class="font-bold text-slate-800">{{ $acc['nama'] }}</span>
+                                    <span class="text-[10px] text-slate-400 block font-mono">{{ $acc['email'] }}</span>
+                                </div>
+                                <span class="text-[9px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 font-semibold">Pilih</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
 
         </div>
 

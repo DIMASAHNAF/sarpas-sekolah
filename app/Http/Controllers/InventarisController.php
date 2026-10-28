@@ -18,11 +18,86 @@ use Symfony\Component\HttpFoundation\Response;
 class InventarisController extends Controller
 {
     /**
-     * Membangun base query inventaris dengan filter & pencarian teks.
+     * Memeriksa apakah pengguna berhak mengakses record inventaris tertentu.
+     */
+    protected function userCanAccessBarang($user, InventarisBarang $item): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($item->user_id && $item->user_id === $user->id) {
+            return true;
+        }
+
+        if (!$user->jurusan) {
+            return false;
+        }
+
+        $aliases = \App\Models\PengajuanBarang::getAliases($user->jurusan);
+        if ($item->jurusan && in_array($item->jurusan, $aliases)) {
+            return true;
+        }
+
+        foreach ($aliases as $alias) {
+            if (
+                ($item->lokasi_ruang && stripos($item->lokasi_ruang, $alias) !== false) ||
+                ($item->kategori && stripos($item->kategori, $alias) !== false) ||
+                ($item->penanggung_jawab && stripos($item->penanggung_jawab, $alias) !== false)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Membangun base query inventaris dengan filter & batasan peran/jurusan.
      */
     protected function buildFilteredQuery(Request $request)
     {
         $query = InventarisBarang::query();
+        $user = auth()->user();
+
+        // 0. Pembatasan Hak Akses: Staf / Kaprodi hanya melihat barang jurusan/unit mereka
+        if ($user && !$user->isAdmin()) {
+            $userJurusan = $user->jurusan;
+            $aliases = \App\Models\PengajuanBarang::getAliases($userJurusan);
+
+            $query->where(function ($sub) use ($aliases, $user) {
+                if (!empty($aliases)) {
+                    $sub->whereIn('jurusan', $aliases);
+                    foreach ($aliases as $alias) {
+                        $sub->orWhere('lokasi_ruang', 'LIKE', "%{$alias}%")
+                            ->orWhere('kategori', 'LIKE', "%{$alias}%")
+                            ->orWhere('penanggung_jawab', 'LIKE', "%{$alias}%");
+                    }
+                }
+                $sub->orWhere('user_id', $user->id);
+            });
+        } elseif ($request->filled('jurusan')) {
+            // Filter Jurusan khusus jika Admin memilihnya di filter
+            if ($request->jurusan === 'Umum') {
+                $query->where(function ($sub) {
+                    $sub->whereNull('jurusan')->orWhere('jurusan', 'Umum');
+                });
+            } else {
+                $aliases = \App\Models\PengajuanBarang::getAliases($request->jurusan);
+                $query->where(function ($sub) use ($aliases, $request) {
+                    $sub->whereIn('jurusan', $aliases)
+                        ->orWhere('jurusan', $request->jurusan);
+                    foreach ($aliases as $alias) {
+                        $sub->orWhere('lokasi_ruang', 'LIKE', "%{$alias}%")
+                            ->orWhere('kategori', 'LIKE', "%{$alias}%");
+                    }
+                });
+            }
+        }
 
         // 1. Pencarian teks: nama_barang atau kode_barang
         $query->when($request->filled('search'), function ($q) use ($request) {
@@ -72,6 +147,7 @@ class InventarisController extends Controller
      */
     public function index(Request $request): View
     {
+        $user = auth()->user();
         $query = $this->buildFilteredQuery($request);
 
         $inventaris = $query->latest('id')->paginate(15)->withQueryString();
@@ -100,14 +176,31 @@ class InventarisController extends Controller
 
         $listRuang = InventarisBarang::select('lokasi_ruang')->distinct()->whereNotNull('lokasi_ruang')->orderBy('lokasi_ruang')->pluck('lokasi_ruang');
 
-        // Statistik ringkas
-        $totalAset = InventarisBarang::sum('nilai_perolehan');
-        $totalBarang = InventarisBarang::sum('jumlah');
-        $totalKondisiBaik = InventarisBarang::where('kondisi', 'Baik')->count();
-        $totalKondisiRusak = InventarisBarang::whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat'])->count();
+        // Base scope untuk statistik ringkas sesuai hak akses pengguna
+        $baseScope = InventarisBarang::query();
+        if ($user && !$user->isAdmin()) {
+            $aliases = \App\Models\PengajuanBarang::getAliases($user->jurusan);
+            $baseScope->where(function ($sub) use ($aliases, $user) {
+                if (!empty($aliases)) {
+                    $sub->whereIn('jurusan', $aliases);
+                    foreach ($aliases as $alias) {
+                        $sub->orWhere('lokasi_ruang', 'LIKE', "%{$alias}%")
+                            ->orWhere('kategori', 'LIKE', "%{$alias}%")
+                            ->orWhere('penanggung_jawab', 'LIKE', "%{$alias}%");
+                    }
+                }
+                $sub->orWhere('user_id', $user->id);
+            });
+        }
 
-        // Jumlah seluruh data (tanpa filter) untuk tombol Kosongkan Data
-        $seluruhDataInventaris = InventarisBarang::count();
+        // Statistik ringkas
+        $totalAset = (clone $baseScope)->sum('nilai_perolehan');
+        $totalBarang = (clone $baseScope)->sum('jumlah');
+        $totalKondisiBaik = (clone $baseScope)->where('kondisi', 'Baik')->count();
+        $totalKondisiRusak = (clone $baseScope)->whereIn('kondisi', ['Rusak Ringan', 'Rusak Berat'])->count();
+        $seluruhDataInventaris = (clone $baseScope)->count();
+
+        $daftarJurusan = \App\Models\PengajuanBarang::getJurusanList();
 
         return view('inventaris.index', compact(
             'inventaris',
@@ -118,7 +211,8 @@ class InventarisController extends Controller
             'totalBarang',
             'totalKondisiBaik',
             'totalKondisiRusak',
-            'seluruhDataInventaris'
+            'seluruhDataInventaris',
+            'daftarJurusan'
         ));
     }
 
@@ -127,7 +221,8 @@ class InventarisController extends Controller
      */
     public function create(): View
     {
-        return view('inventaris.create');
+        $daftarJurusan = \App\Models\PengajuanBarang::getJurusanList();
+        return view('inventaris.create', compact('daftarJurusan'));
     }
 
     /**
@@ -136,9 +231,16 @@ class InventarisController extends Controller
     public function store(StoreInventarisRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $user = auth()->user();
 
         // LOGIKA OTOMATIS: nilai_perolehan = jumlah * harga_satuan
         $validated['nilai_perolehan'] = (int) $validated['jumlah'] * (float) $validated['harga_satuan'];
+        $validated['user_id'] = $user?->id;
+
+        // Jika staf/kaprodi, kunci jurusan ke jurusan akun mereka
+        if ($user && !$user->isAdmin()) {
+            $validated['jurusan'] = $user->jurusan;
+        }
 
         InventarisBarang::create($validated);
 
@@ -152,6 +254,13 @@ class InventarisController extends Controller
      */
     public function show(InventarisBarang $inventaris): View
     {
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessBarang($user, $inventaris)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang melihat data inventaris barang jurusan / unit Anda.');
+            }
+        }
+
         return view('inventaris.show', compact('inventaris'));
     }
 
@@ -160,7 +269,15 @@ class InventarisController extends Controller
      */
     public function edit(InventarisBarang $inventaris): View
     {
-        return view('inventaris.edit', compact('inventaris'));
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessBarang($user, $inventaris)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang mengubah data inventaris barang jurusan / unit Anda.');
+            }
+        }
+
+        $daftarJurusan = \App\Models\PengajuanBarang::getJurusanList();
+        return view('inventaris.edit', compact('inventaris', 'daftarJurusan'));
     }
 
     /**
@@ -168,10 +285,19 @@ class InventarisController extends Controller
      */
     public function update(UpdateInventarisRequest $request, InventarisBarang $inventaris): RedirectResponse
     {
-        $validated = $request->validated();
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessBarang($user, $inventaris)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang memperbarui data inventaris barang jurusan / unit Anda.');
+            }
+        }
 
-        // LOGIKA OTOMATIS: rekalkulasi sebelum update
+        $validated = $request->validated();
         $validated['nilai_perolehan'] = (int) $validated['jumlah'] * (float) $validated['harga_satuan'];
+
+        if ($user && !$user->isAdmin()) {
+            $validated['jurusan'] = $user->jurusan;
+        }
 
         $inventaris->update($validated);
 
@@ -317,9 +443,13 @@ class InventarisController extends Controller
         ]);
 
         try {
-            $truncateOld = $request->boolean('truncate_old');
+            $user = auth()->user();
+            $truncateOld = ($user && $user->isAdmin()) ? $request->boolean('truncate_old') : false;
+            $defaultJurusan = ($user && !$user->isAdmin()) ? $user->jurusan : null;
+            $userId = $user?->id;
+
             $importer = new \App\Imports\InventarisExcelImporter();
-            $result = $importer->import($request->file('file_excel'), $truncateOld);
+            $result = $importer->import($request->file('file_excel'), $truncateOld, $defaultJurusan, $userId);
 
             $pesan = "Berhasil mengimpor {$result['count']} barang ke Buku Inventaris Barang.";
             if (!empty($result['school_name'])) {

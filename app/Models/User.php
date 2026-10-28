@@ -20,6 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'jurusan',
     ];
 
     /**
@@ -62,11 +63,54 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user memiliki peran staff/user biasa.
+     * Cek apakah user memiliki peran staff/user biasa atau kaprodi.
      */
     public function isUser(): bool
     {
-        return $this->role === 'user' || $this->role === 'kaprodi';
+        return $this->role === 'user' || $this->role === 'kaprodi' || $this->role === 'staff';
+    }
+
+    /**
+     * Label representasi peran dan jurusan user.
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        if ($this->isAdmin()) {
+            return 'Administrator Sarpras';
+        }
+
+        if ($this->role === 'kaprodi') {
+            return 'Kaprodi ' . ($this->jurusan ?: '');
+        }
+
+        if ($this->jurusan) {
+            return 'Staf / Unit ' . $this->jurusan;
+        }
+
+        return 'Staf Pengguna';
+    }
+
+    /**
+     * Cek apakah pengguna berwenang mengakses data suatu jurusan.
+     */
+    public function canAccessJurusan(?string $jurusan): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if (!$this->jurusan || !$jurusan) {
+            return false;
+        }
+
+        $aliases = PengajuanBarang::getAliases($this->jurusan);
+        foreach ($aliases as $alias) {
+            if (strcasecmp($alias, $jurusan) === 0 || stripos($jurusan, $alias) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

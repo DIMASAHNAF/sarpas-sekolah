@@ -14,11 +14,58 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 class PengajuanBarangController extends Controller
 {
     /**
+     * Memeriksa apakah pengguna berhak mengakses record pengajuan barang tertentu.
+     */
+    protected function userCanAccessPengajuan($user, PengajuanBarang $pengajuan): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($pengajuan->user_id && $pengajuan->user_id === $user->id) {
+            return true;
+        }
+
+        if (!$user->jurusan) {
+            return false;
+        }
+
+        $aliases = PengajuanBarang::getAliases($user->jurusan);
+        if (in_array($pengajuan->program_keahlian, $aliases)) {
+            return true;
+        }
+
+        foreach ($aliases as $alias) {
+            if (stripos($pengajuan->program_keahlian, $alias) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Tampilkan daftar riwayat pengajuan barang.
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = PengajuanBarang::with(['items', 'user'])->latest();
+
+        // Batasan peran: staf/kaprodi hanya melihat pengajuan dari jurusan/unit mereka
+        if ($user && !$user->isAdmin()) {
+            $aliases = PengajuanBarang::getAliases($user->jurusan);
+            $query->where(function ($q) use ($aliases, $user) {
+                if (!empty($aliases)) {
+                    $q->whereIn('program_keahlian', $aliases);
+                }
+                $q->orWhere('user_id', $user->id);
+            });
+        }
 
         // Filter berdasarkan pencarian
         if ($search = $request->input('search')) {
@@ -42,7 +89,8 @@ class PengajuanBarangController extends Controller
 
         // Filter program keahlian / jurusan
         if ($jurusan = $request->input('program_keahlian')) {
-            $query->where('program_keahlian', $jurusan);
+            $aliases = PengajuanBarang::getAliases($jurusan);
+            $query->whereIn('program_keahlian', $aliases);
         }
 
         // Filter status
@@ -52,11 +100,22 @@ class PengajuanBarangController extends Controller
 
         $pengajuanList = $query->paginate(10)->withQueryString();
 
-        // Ringkasan Statistik
-        $totalPengajuan = PengajuanBarang::count();
-        $totalBiaya = PengajuanBarang::sum('total_biaya');
-        $totalAlatPraktikum = PengajuanBarang::where('jenis_pengajuan', 'ALAT PRAKTIKUM')->count();
-        $totalBHP = PengajuanBarang::where('jenis_pengajuan', 'BARANG HABIS PAKAI')->count();
+        // Ringkasan Statistik sesuai hak akses pengguna
+        $baseScope = PengajuanBarang::query();
+        if ($user && !$user->isAdmin()) {
+            $aliases = PengajuanBarang::getAliases($user->jurusan);
+            $baseScope->where(function ($q) use ($aliases, $user) {
+                if (!empty($aliases)) {
+                    $q->whereIn('program_keahlian', $aliases);
+                }
+                $q->orWhere('user_id', $user->id);
+            });
+        }
+
+        $totalPengajuan = (clone $baseScope)->count();
+        $totalBiaya = (clone $baseScope)->sum('total_biaya');
+        $totalAlatPraktikum = (clone $baseScope)->where('jenis_pengajuan', 'ALAT PRAKTIKUM')->count();
+        $totalBHP = (clone $baseScope)->where('jenis_pengajuan', 'BARANG HABIS PAKAI')->count();
 
         // Daftar tahun untuk filter
         $availableYears = PengajuanBarang::select('tahun_anggaran')
@@ -119,19 +178,30 @@ class PengajuanBarangController extends Controller
             'nomor_surat'          => 'nullable|string|max:100',
             
             // Item pengajuan
-            'items'                => 'required|array|min:1',
-            'items.*.nama_barang'  => 'required|string|max:255',
-            'items.*.fungsi'       => 'nullable|string',
-            'items.*.merk'         => 'nullable|string|max:150',
-            'items.*.spesifikasi'  => 'nullable|string',
-            'items.*.jumlah'       => 'required|integer|min:1',
-            'items.*.satuan'       => 'required|string|max:50',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
-            'items.*.catatan'      => 'nullable|string',
+            'items'                  => 'required|array|min:1',
+            'items.*.nama_barang'    => 'required|string|max:255',
+            'items.*.gambar'         => 'nullable',
+            'items.*.existing_gambar'=> 'nullable|string',
+            'items.*.gambar_base64'  => 'nullable|string',
+            'items.*.gambar_scale'   => 'nullable|integer',
+            'items.*.fungsi'         => 'nullable|string',
+            'items.*.merk'          => 'nullable|string|max:150',
+            'items.*.spesifikasi'   => 'nullable|string',
+            'items.*.jumlah'        => 'required|integer|min:1',
+            'items.*.satuan'        => 'required|string|max:50',
+            'items.*.harga_satuan'  => 'required|numeric|min:0',
+            'items.*.catatan'       => 'nullable|string',
         ]);
 
         DB::beginTransaction();
         try {
+            $user = auth()->user();
+
+            // Jika bukan admin, pastikan program keahlian dikunci sesuai jurusan user
+            if ($user && !$user->isAdmin()) {
+                $validated['program_keahlian'] = $user->jurusan ?: $validated['program_keahlian'];
+            }
+
             // Hitung nomor surat otomatis jika kosong
             $nomorSurat = $validated['nomor_surat'] ?: $this->generateNomorSurat($validated['tahun_anggaran']);
 
@@ -145,7 +215,7 @@ class PengajuanBarangController extends Controller
             $terbilang = PengajuanBarang::terbilang($totalBiaya) . ' Rupiah';
 
             $pengajuan = PengajuanBarang::create([
-                'user_id'              => auth()->id(),
+                'user_id'              => $user?->id,
                 'nomor_surat'          => $nomorSurat,
                 'jenis_pengajuan'      => $validated['jenis_pengajuan'],
                 'program_keahlian'     => $validated['program_keahlian'],
@@ -178,6 +248,7 @@ class PengajuanBarangController extends Controller
                     'pengajuan_barang_id' => $pengajuan->id,
                     'nama_barang'         => $itemData['nama_barang'],
                     'gambar'              => $gambarPath,
+                    'gambar_scale'        => (int) ($itemData['gambar_scale'] ?? 100),
                     'fungsi'              => $itemData['fungsi'] ?? null,
                     'merk'                => $itemData['merk'] ?? null,
                     'spesifikasi'         => $itemData['spesifikasi'] ?? null,
@@ -204,6 +275,13 @@ class PengajuanBarangController extends Controller
      */
     public function show(PengajuanBarang $pengajuan_barang)
     {
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessPengajuan($user, $pengajuan_barang)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang melihat pengajuan barang milik unit/jurusan Anda.');
+            }
+        }
+
         $pengajuan_barang->load('items', 'user');
         $profil = ProfilSekolah::first() ?? new ProfilSekolah();
 
@@ -218,6 +296,13 @@ class PengajuanBarangController extends Controller
      */
     public function print(PengajuanBarang $pengajuan_barang)
     {
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessPengajuan($user, $pengajuan_barang)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang mencetak pengajuan barang milik unit/jurusan Anda.');
+            }
+        }
+
         $pengajuan_barang->load('items', 'user');
         $profil = ProfilSekolah::first() ?? new ProfilSekolah();
 
@@ -232,6 +317,13 @@ class PengajuanBarangController extends Controller
      */
     public function edit(PengajuanBarang $pengajuan_barang)
     {
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessPengajuan($user, $pengajuan_barang)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang mengubah pengajuan barang milik unit/jurusan Anda.');
+            }
+        }
+
         $pengajuan_barang->load('items');
         $profil = ProfilSekolah::first() ?? new ProfilSekolah();
 
@@ -249,6 +341,13 @@ class PengajuanBarangController extends Controller
      */
     public function update(Request $request, PengajuanBarang $pengajuan_barang)
     {
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessPengajuan($user, $pengajuan_barang)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang memperbarui pengajuan barang milik unit/jurusan Anda.');
+            }
+        }
+
         $validated = $request->validate([
             'jenis_pengajuan'      => 'required|in:ALAT PRAKTIKUM,BARANG HABIS PAKAI',
             'program_keahlian'     => 'required|string|max:255',
@@ -262,16 +361,24 @@ class PengajuanBarangController extends Controller
             'nomor_surat'          => 'nullable|string|max:100',
             
             // Item pengajuan
-            'items'                => 'required|array|min:1',
-            'items.*.nama_barang'  => 'required|string|max:255',
-            'items.*.fungsi'       => 'nullable|string',
-            'items.*.merk'         => 'nullable|string|max:150',
-            'items.*.spesifikasi'  => 'nullable|string',
-            'items.*.jumlah'       => 'required|integer|min:1',
-            'items.*.satuan'       => 'required|string|max:50',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
-            'items.*.catatan'      => 'nullable|string',
+            'items'                  => 'required|array|min:1',
+            'items.*.nama_barang'    => 'required|string|max:255',
+            'items.*.gambar'         => 'nullable',
+            'items.*.existing_gambar'=> 'nullable|string',
+            'items.*.gambar_base64'  => 'nullable|string',
+            'items.*.gambar_scale'   => 'nullable|integer',
+            'items.*.fungsi'         => 'nullable|string',
+            'items.*.merk'          => 'nullable|string|max:150',
+            'items.*.spesifikasi'   => 'nullable|string',
+            'items.*.jumlah'        => 'required|integer|min:1',
+            'items.*.satuan'        => 'required|string|max:50',
+            'items.*.harga_satuan'  => 'required|numeric|min:0',
+            'items.*.catatan'       => 'nullable|string',
         ]);
+
+        if ($user && !$user->isAdmin()) {
+            $validated['program_keahlian'] = $user->jurusan ?: $validated['program_keahlian'];
+        }
 
         DB::beginTransaction();
         try {
@@ -315,6 +422,7 @@ class PengajuanBarangController extends Controller
                     'pengajuan_barang_id' => $pengajuan_barang->id,
                     'nama_barang'         => $itemData['nama_barang'],
                     'gambar'              => $gambarPath,
+                    'gambar_scale'        => (int) ($itemData['gambar_scale'] ?? 100),
                     'fungsi'              => $itemData['fungsi'] ?? null,
                     'merk'                => $itemData['merk'] ?? null,
                     'spesifikasi'         => $itemData['spesifikasi'] ?? null,
@@ -341,6 +449,13 @@ class PengajuanBarangController extends Controller
      */
     public function destroy(PengajuanBarang $pengajuan_barang)
     {
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessPengajuan($user, $pengajuan_barang)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang menghapus pengajuan barang milik unit/jurusan Anda.');
+            }
+        }
+
         try {
             $pengajuan_barang->items()->delete();
             $pengajuan_barang->delete();
@@ -357,6 +472,13 @@ class PengajuanBarangController extends Controller
      */
     public function exportExcel(PengajuanBarang $pengajuan_barang)
     {
+        $user = auth()->user();
+        if ($user && !$user->isAdmin()) {
+            if (!$this->userCanAccessPengajuan($user, $pengajuan_barang)) {
+                abort(403, 'Akses ditolak. Anda hanya berwenang mengunduh berkas pengajuan barang milik unit/jurusan Anda.');
+            }
+        }
+
         $pengajuan_barang->load('items');
         $profil = ProfilSekolah::first() ?? new ProfilSekolah();
 

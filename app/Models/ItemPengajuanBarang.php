@@ -14,6 +14,7 @@ class ItemPengajuanBarang extends Model
         'pengajuan_barang_id',
         'nama_barang',
         'gambar',
+        'gambar_scale',
         'fungsi',
         'merk',
         'spesifikasi',
@@ -26,6 +27,7 @@ class ItemPengajuanBarang extends Model
 
     protected $casts = [
         'jumlah'       => 'integer',
+        'gambar_scale' => 'integer',
         'harga_satuan' => 'decimal:2',
         'total_harga'  => 'decimal:2',
     ];

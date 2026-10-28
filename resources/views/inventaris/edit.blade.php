@@ -69,6 +69,31 @@
                     @enderror
                 </div>
 
+                <!-- Jurusan / Unit Pemilik Barang -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                        Jurusan / Unit Kepemilikan Barang
+                        @if(!auth()->user()->isAdmin())
+                            <span class="text-blue-600 font-semibold">(Terkunci Otomatis Sesuai Akun Anda)</span>
+                        @endif
+                    </label>
+
+                    @if(auth()->user()->isAdmin())
+                        <select name="jurusan" id="jurusan" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-medium">
+                            <option value="">Umum / Sarpras Sekolah (Bukan Milik Khusus Jurusan)</option>
+                            @foreach($daftarJurusan as $j)
+                                <option value="{{ $j }}" {{ old('jurusan', $inventaris->jurusan) == $j ? 'selected' : '' }}>{{ $j }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div class="flex items-center space-x-2 px-3.5 py-2.5 bg-blue-50/80 border border-blue-200 rounded-xl text-blue-900 font-bold text-xs sm:text-sm">
+                            <i class="fa-solid fa-building-columns text-blue-600"></i>
+                            <span>{{ auth()->user()->jurusan ?: 'Staf Umum' }}</span>
+                            <input type="hidden" name="jurusan" value="{{ auth()->user()->jurusan }}">
+                        </div>
+                    @endif
+                </div>
+
                 <!-- Merk & Spesifikasi -->
                 <div class="md:col-span-2">
                     <label for="merk_spesifikasi" class="block text-xs font-bold text-slate-700 uppercase mb-1">Merk / Spesifikasi Lengkap (Opsional)</label>

@@ -20,9 +20,12 @@ Route::middleware('auth')->group(function () {
 
     // Akses Lihat & Ekspor Dokumen (Bisa diakses Admin & User / Staf)
     Route::get('inventaris', [InventarisController::class, 'index'])->name('inventaris.index');
-    // Tambah Data Barang (Bisa diakses Admin & User / Staf)
+    // Tambah & Edit Data Barang (Akses difilter otomatis sesuai hak jurusan)
     Route::get('inventaris/create', [InventarisController::class, 'create'])->name('inventaris.create');
     Route::post('inventaris', [InventarisController::class, 'store'])->name('inventaris.store');
+    Route::get('inventaris/{inventaris}/edit', [InventarisController::class, 'edit'])->name('inventaris.edit');
+    Route::put('inventaris/{inventaris}', [InventarisController::class, 'update'])->name('inventaris.update');
+    Route::patch('inventaris/{inventaris}', [InventarisController::class, 'update']);
 
     // Import & Unduh Template Excel (Bisa diakses Admin & User / Staf / Kaprodi)
     Route::post('inventaris/import/excel', [InventarisController::class, 'importExcel'])->name('inventaris.import.excel');
@@ -39,11 +42,6 @@ Route::middleware('auth')->group(function () {
         Route::get('inventaris/export/excel', [InventarisController::class, 'exportExcel'])->name('inventaris.export.excel');
         Route::get('inventaris/export/pdf', [InventarisController::class, 'exportPdf'])->name('inventaris.export.pdf');
 
-        // Edit Data Barang
-        Route::get('inventaris/{inventaris}/edit', [InventarisController::class, 'edit'])->name('inventaris.edit');
-        Route::put('inventaris/{inventaris}', [InventarisController::class, 'update'])->name('inventaris.update');
-        Route::patch('inventaris/{inventaris}', [InventarisController::class, 'update']);
-
         // Hapus Data Barang (Satuan, Terpilih / Bulk, & Hapus Seluruh Database)
         Route::delete('inventaris/destroy-all', [InventarisController::class, 'destroyAll'])->name('inventaris.destroyAll');
         Route::delete('inventaris/bulk-delete', [InventarisController::class, 'bulkDelete'])->name('inventaris.bulkDelete');
@@ -55,6 +53,9 @@ Route::middleware('auth')->group(function () {
 
         // Berita Acara Serah Terima
         Route::get('berita-acara', [BeritaAcaraController::class, 'index'])->name('berita-acara.index');
+
+        // Manajemen Pengguna & Staf Jurusan/Unit
+        Route::resource('pengguna', \App\Http\Controllers\UserController::class);
     });
 
     // Detail Barang (ditaruh setelah rute inventaris/create agar tidak bentrok param)

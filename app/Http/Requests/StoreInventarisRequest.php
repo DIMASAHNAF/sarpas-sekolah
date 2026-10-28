@@ -20,6 +20,7 @@ class StoreInventarisRequest extends FormRequest
             'nama_barang'        => ['required', 'string', 'max:255'],
             'merk_spesifikasi'   => ['nullable', 'string'],
             'kategori'           => ['nullable', 'string', 'max:100'],
+            'jurusan'            => ['nullable', 'string', 'max:100'],
             'jumlah'             => ['required', 'integer', 'min:1'],
             'satuan'             => ['nullable', 'string', 'max:50'],
             'harga_satuan'       => ['required', 'numeric', 'min:0'],

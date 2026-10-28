@@ -29,10 +29,21 @@
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
                 <span>Buku Inventaris Barang (BIB)</span>
+                @if(!auth()->user()->isAdmin() && auth()->user()->jurusan)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                        <i class="fa-solid fa-building-columns mr-1.5 text-blue-600"></i> Unit: {{ auth()->user()->jurusan }}
+                    </span>
+                @endif
             </h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Pencatatan dan monitoring sarana prasarana pengadaan Dana BOS / BOSP.</p>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                @if(auth()->user()->isAdmin())
+                    Pencatatan dan monitoring sarana prasarana pengadaan Dana BOS / BOSP seluruh unit sekolah.
+                @else
+                    Pencatatan dan monitoring sarana prasarana unit <strong>{{ auth()->user()->jurusan }}</strong>.
+                @endif
+            </p>
         </div>
 
         <!-- Action Buttons (Responsive Grid on Mobile, Flex on Desktop) -->
@@ -138,7 +149,7 @@
             <div class="flex items-center space-x-2">
                 <i class="fa-solid fa-filter text-blue-600 text-xs"></i>
                 <span class="text-xs font-bold text-slate-700">Filter & Pencarian Barang</span>
-                @if(request('search') || request('tahun_anggaran') || request('bulan') || request('kondisi') || request('lokasi_ruang'))
+                @if(request('search') || request('tahun_anggaran') || request('bulan') || request('kondisi') || request('lokasi_ruang') || request('jurusan'))
                     <span class="px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-bold">Aktif</span>
                 @endif
             </div>
@@ -165,6 +176,20 @@
                                class="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
                     </div>
                 </div>
+
+                @if(auth()->user()->isAdmin())
+                <!-- Filter Jurusan / Unit (Khusus Admin) -->
+                <div class="lg:col-span-1">
+                    <label for="jurusan" class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Jurusan / Unit</label>
+                    <select name="jurusan" id="jurusan" class="w-full py-2 px-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-medium">
+                        <option value="">Semua Unit</option>
+                        <option value="Umum" {{ request('jurusan') == 'Umum' ? 'selected' : '' }}>Umum / Sarpras</option>
+                        @foreach($daftarJurusan as $j)
+                            <option value="{{ $j }}" {{ request('jurusan') == $j ? 'selected' : '' }}>{{ $j }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
 
                 <!-- Filter Tahun Anggaran -->
                 <div class="lg:col-span-1">
@@ -294,6 +319,11 @@
                             @if($item->merk_spesifikasi)
                                 <p class="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{{ $item->merk_spesifikasi }}</p>
                             @endif
+                            @if($item->jurusan)
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 mt-1">
+                                    <i class="fa-solid fa-building-columns mr-1 text-[8px]"></i>{{ $item->jurusan }}
+                                </span>
+                            @endif
                         </div>
                         <div class="shrink-0">
                             @if($item->kondisi === 'Baik')
@@ -350,12 +380,14 @@
                                 <i class="fa-solid fa-eye mr-1"></i> Detail
                             </a>
 
-                            @if(auth()->user()->isAdmin())
+                            @if(auth()->user()->isAdmin() || ($item->jurusan && auth()->user()->canAccessJurusan($item->jurusan)))
                                 <a href="{{ route('inventaris.edit', $item) }}" 
                                    title="Ubah Data" 
                                    class="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors">
                                     <i class="fa-solid fa-pen text-xs"></i>
                                 </a>
+                            @endif
+                            @if(auth()->user()->isAdmin())
                                 <form action="{{ route('inventaris.destroy', $item) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus {{ $item->nama_barang }}?')">
                                     @csrf
                                     @method('DELETE')
@@ -436,6 +468,11 @@
                                 @if($item->merk_spesifikasi)
                                     <p class="text-[10px] text-slate-400 line-clamp-1 mt-0.5 block" title="{{ $item->merk_spesifikasi }}">{{ $item->merk_spesifikasi }}</p>
                                 @endif
+                                @if($item->jurusan)
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 mt-1">
+                                        <i class="fa-solid fa-building-columns mr-1 text-[8px]"></i>{{ $item->jurusan }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="py-1.5 px-1.5 whitespace-nowrap text-center">
                                 <span class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-medium text-[10px]">{{ $item->kategori }}</span>
@@ -477,13 +514,16 @@
                                         <i class="fa-solid fa-eye text-xs"></i>
                                     </a>
 
-                                    @if(auth()->user()->isAdmin())
+                                    @if(auth()->user()->isAdmin() || ($item->jurusan && auth()->user()->canAccessJurusan($item->jurusan)))
                                         <!-- Edit -->
                                         <a href="{{ route('inventaris.edit', $item) }}" 
                                            title="Ubah Data" 
                                            class="w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors">
                                             <i class="fa-solid fa-pen text-xs"></i>
                                         </a>
+                                    @endif
+
+                                    @if(auth()->user()->isAdmin())
                                         <!-- Delete -->
                                         <form action="{{ route('inventaris.destroy', $item) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data inventaris {{ $item->nama_barang }}?')">
                                             @csrf

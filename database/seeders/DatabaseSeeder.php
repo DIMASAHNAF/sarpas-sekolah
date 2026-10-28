@@ -28,24 +28,33 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Akun Pengguna (Admin & User/Staf)
+        // 2. Akun Pengguna (Admin & Staf per Jurusan / Unit)
         \App\Models\User::firstOrCreate(
             ['email' => 'admin@smkn1beringin.sch.id'],
             [
                 'name'     => 'Administrator Sarpras',
                 'password' => bcrypt('admin123'),
                 'role'     => 'admin',
+                'jurusan'  => null,
             ]
         );
 
-        \App\Models\User::firstOrCreate(
-            ['email' => 'user@smkn1beringin.sch.id'],
-            [
-                'name'     => 'Kepala Program Keahlian (Kaprodi)',
-                'password' => bcrypt('user123'),
-                'role'     => 'kaprodi',
-            ]
-        );
+        $unitAccounts = [
+            ['email' => 'user@smkn1beringin.sch.id', 'name' => 'Kaprodi TJKT (TKJ)', 'role' => 'kaprodi', 'jurusan' => 'TJKT (TKJ)', 'password' => bcrypt('user123')],
+            ['email' => 'kecantikan@smkn1beringin.sch.id', 'name' => 'Kaprodi Kecantikan dan SPA', 'role' => 'kaprodi', 'jurusan' => 'Kecantikan dan SPA', 'password' => bcrypt('password123')],
+            ['email' => 'kuliner@smkn1beringin.sch.id', 'name' => 'Kaprodi Kuliner', 'role' => 'kaprodi', 'jurusan' => 'Kuliner', 'password' => bcrypt('password123')],
+            ['email' => 'pplg@smkn1beringin.sch.id', 'name' => 'Kaprodi PPLG (RPL)', 'role' => 'kaprodi', 'jurusan' => 'PPLG (RPL)', 'password' => bcrypt('password123')],
+            ['email' => 'tjkt@smkn1beringin.sch.id', 'name' => 'Kaprodi TJKT (TKJ)', 'role' => 'kaprodi', 'jurusan' => 'TJKT (TKJ)', 'password' => bcrypt('password123')],
+            ['email' => 'pariwisata@smkn1beringin.sch.id', 'name' => 'Kaprodi Pariwisata', 'role' => 'kaprodi', 'jurusan' => 'Pariwisata', 'password' => bcrypt('password123')],
+            ['email' => 'perhotelan@smkn1beringin.sch.id', 'name' => 'Kaprodi Perhotelan', 'role' => 'kaprodi', 'jurusan' => 'Perhotelan', 'password' => bcrypt('password123')],
+            ['email' => 'tatabusana@smkn1beringin.sch.id', 'name' => 'Kaprodi Tata Busana', 'role' => 'kaprodi', 'jurusan' => 'Tata Busana', 'password' => bcrypt('password123')],
+            ['email' => 'uks@smkn1beringin.sch.id', 'name' => 'Staf Pengurus UKS', 'role' => 'staff', 'jurusan' => 'UKS', 'password' => bcrypt('password123')],
+            ['email' => 'perpustakaan@smkn1beringin.sch.id', 'name' => 'Kepala Perpustakaan', 'role' => 'staff', 'jurusan' => 'Perpustakaan', 'password' => bcrypt('password123')],
+        ];
+
+        foreach ($unitAccounts as $acc) {
+            \App\Models\User::updateOrCreate(['email' => $acc['email']], $acc);
+        }
 
         // 3. Data Inventaris Barang Sesuai Excel Buku Inventaris Barang (BIB) Dana BOS 2026
         InventarisBarang::truncate();

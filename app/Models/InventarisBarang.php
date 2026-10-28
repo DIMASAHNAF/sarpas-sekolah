@@ -18,6 +18,7 @@ class InventarisBarang extends Model
         'nama_barang',
         'merk_spesifikasi',
         'kategori',
+        'jurusan',
         'jumlah',
         'satuan',
         'harga_satuan',
@@ -31,6 +32,7 @@ class InventarisBarang extends Model
         'nomor_register',
         'keterangan',
         'tautan_dokumen',
+        'user_id',
     ];
 
     protected $casts = [
@@ -53,6 +55,14 @@ class InventarisBarang extends Model
                 $item->nilai_perolehan = (int) $item->jumlah * (float) $item->harga_satuan;
             }
         });
+    }
+
+    /**
+     * Relasi ke user pencatat barang.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

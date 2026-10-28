@@ -213,9 +213,14 @@
                     <tr>
                         <td class="border border-black p-1 text-center">{{ $idx + 1 }}</td>
                         <td class="border border-black p-1 font-semibold">{{ $item->nama_barang }}</td>
-                        <td class="border border-black p-1 text-center">
+                        <td class="border border-black p-1 text-center align-middle">
                             @if($item->gambar)
-                                <img src="{{ $item->gambar_url }}" alt="Foto Barang" class="w-12 h-10 object-contain mx-auto rounded border border-slate-300">
+                                <div class="flex items-center justify-center p-0.5 overflow-hidden">
+                                    <img src="{{ $item->gambar_url }}" 
+                                         alt="Foto Barang" 
+                                         style="max-height: {{ round(45 * ($item->gambar_scale ?: 100) / 100) }}px; max-width: {{ round(80 * ($item->gambar_scale ?: 100) / 100) }}px;" 
+                                         class="object-contain inline-block rounded border border-slate-200">
+                                </div>
                             @else
                                 <span class="text-[9px] text-slate-400 italic">(Terlampir)</span>
                             @endif

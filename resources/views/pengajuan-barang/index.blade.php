@@ -13,11 +13,20 @@
                 <i class="fa-solid fa-chevron-right text-[10px]"></i>
                 <span class="text-indigo-600 font-bold">Pengajuan Barang Kaprodi</span>
             </div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
-                Pengajuan Barang & Alat Praktikum
+            <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2 flex-wrap">
+                <span>Pengajuan Barang & Alat Praktikum</span>
+                @if(!auth()->user()->isAdmin() && auth()->user()->jurusan)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                        <i class="fa-solid fa-building-columns mr-1.5 text-indigo-600"></i> Unit: {{ auth()->user()->jurusan }}
+                    </span>
+                @endif
             </h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">
-                Formulir usulan pengadaan sarana, alat praktik, dan bahan habis pakai laboratorium/bengkel jurusan.
+                @if(auth()->user()->isAdmin())
+                    Formulir usulan pengadaan sarana, alat praktik, dan bahan habis pakai laboratorium/bengkel seluruh jurusan & unit sekolah.
+                @else
+                    Formulir usulan pengadaan sarana & alat praktik khusus unit <strong>{{ auth()->user()->jurusan }}</strong>.
+                @endif
             </p>
         </div>
 
@@ -92,15 +101,17 @@
                 </div>
             </div>
 
+            @if(auth()->user()->isAdmin())
             <!-- Filter Jurusan / Program Keahlian -->
             <div>
                 <select name="program_keahlian" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
-                    <option value="">Semua Jurusan</option>
+                    <option value="">Semua Jurusan & Unit</option>
                     @foreach($jurusanList as $jurusan)
                         <option value="{{ $jurusan }}" {{ request('program_keahlian') == $jurusan ? 'selected' : '' }}>{{ $jurusan }}</option>
                     @endforeach
                 </select>
             </div>
+            @endif
 
             <!-- Filter Jenis -->
             <div>
